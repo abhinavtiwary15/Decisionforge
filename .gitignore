@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Production build output
+dist/
+
+# Environment & secrets — NEVER commit these
+.env
+.env.local
+.env.*.local
+*.key.json
+key.json
+*credentials*
+*service-account*
+*serviceaccount*
+
+# Vercel internal directory
+.vercel/
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.pyc
+*.pyo

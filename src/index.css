@@ -1,0 +1,107 @@
+@import "tailwindcss";
+
+@theme {
+  /* Design System Color Tokens */
+  --color-paper: #F3EEE2;
+  --color-ink: #1B1811;
+  --color-brass: #A9781E;
+  --color-vermillion: #A63A2E;
+
+  /* Typography Font Families */
+  --font-fraunces: 'Fraunces', serif;
+  --font-sans: 'IBM Plex Sans', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+
+  /* Restrict border radius to 0-2px everywhere */
+  --radius-none: 0px;
+  --radius-sm: 2px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
+  --radius-xl: 2px;
+  --radius-2xl: 2px;
+  --radius-full: 2px;
+}
+
+@utility tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   HOVER UTILITY CLASSES
+   Using explicit rgba() values instead of Tailwind's two-class bg + bg-opacity
+   pattern, which can de-sync in Tailwind v4 and make text invisible.
+
+   Rule: every hover/active state that changes background MUST also declare
+   color so text is always readable regardless of base context.
+─────────────────────────────────────────────────────────────────────────── */
+
+/* Table rows on a Paper/light background:
+   Very light ink tint — text stays Ink dark, always readable. */
+.row-hover:hover {
+  background-color: rgba(27, 24, 17, 0.07) !important;
+  color: #1B1811 !important;
+}
+/* Make every <td> inside a hovered row inherit the colour */
+.row-hover:hover td,
+.row-hover:hover td * {
+  color: inherit !important;
+}
+
+/* Sidebar nav item: Ink background — hover = slight paper tint, text stays Paper */
+.nav-hover:hover {
+  background-color: rgba(243, 238, 226, 0.10) !important;
+  color: #F3EEE2 !important;
+}
+.nav-hover:hover span {
+  color: #F3EEE2 !important;
+  opacity: 1 !important;
+}
+
+/* Active sidebar item: Brass text on paper-tint bg */
+.nav-active {
+  background-color: rgba(243, 238, 226, 0.08) !important;
+  border-left-color: #A9781E !important;
+  color: #A9781E !important;
+}
+.nav-active span {
+  color: #A9781E !important;
+  opacity: 1 !important;
+}
+
+/* Outline button hover on paper/light backgrounds:
+   Text stays Ink, bg gets subtle ink wash. */
+.btn-outline-hover:hover {
+  background-color: rgba(27, 24, 17, 0.07) !important;
+  color: #1B1811 !important;
+}
+
+/* Inline clickable card/row hover on Paper bg */
+.card-hover:hover {
+  background-color: rgba(27, 24, 17, 0.06) !important;
+  color: #1B1811 !important;
+}
+.card-hover:hover * {
+  color: inherit !important;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   CUSTOM SCROLLBAR
+─────────────────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #F3EEE2;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(27, 24, 17, 0.3);
+  border-radius: 0px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #A9781E;
+}
+
+body {
+  background-color: #FAF8F5;
+}

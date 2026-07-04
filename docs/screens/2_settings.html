@@ -1,0 +1,319 @@
+<!DOCTYPE html><html class="light" lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>DecisionForge - Settings</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed-variant": "#4b463e",
+                        "surface-container": "#f2ede1",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary-fixed": "#410000",
+                        "on-primary-container": "#fffbff",
+                        "surface-bright": "#fef9ed",
+                        "secondary": "#635e55",
+                        "on-primary-fixed": "#281800",
+                        "on-primary-fixed-variant": "#604000",
+                        "tertiary-fixed-dim": "#ffb4a9",
+                        "on-tertiary-container": "#fffbff",
+                        "error": "#ba1a1a",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-fixed-dim": "#f7bc5d",
+                        "error-container": "#ffdad6",
+                        "on-primary": "#ffffff",
+                        "secondary-container": "#e6dfd3",
+                        "background": "#fef9ed",
+                        "on-error": "#ffffff",
+                        "on-secondary-container": "#676259",
+                        "surface-container-highest": "#e7e2d6",
+                        "on-tertiary-fixed-variant": "#852219",
+                        "on-surface": "#1d1c15",
+                        "surface-container-low": "#f8f3e7",
+                        "tertiary-fixed": "#ffdad5",
+                        "primary": "#7c5400",
+                        "surface-variant": "#e7e2d6",
+                        "surface-tint": "#7f5600",
+                        "inverse-on-surface": "#f5f0e4",
+                        "tertiary-container": "#c34f41",
+                        "primary-fixed": "#ffddae",
+                        "surface-container-high": "#ede8dc",
+                        "tertiary": "#a2372c",
+                        "on-secondary-fixed": "#1e1b14",
+                        "on-surface-variant": "#504537",
+                        "on-tertiary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "outline": "#827565",
+                        "secondary-fixed": "#e9e1d6",
+                        "primary-container": "#9b6c10",
+                        "inverse-surface": "#323029",
+                        "inverse-primary": "#f7bc5d",
+                        "surface": "#fef9ed",
+                        "secondary-fixed-dim": "#cdc6ba",
+                        "surface-dim": "#dedace",
+                        "outline-variant": "#d4c4b1",
+                        "on-background": "#1d1c15"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0px",
+                        "lg": "0px",
+                        "xl": "0px",
+                        "full": "0px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "container-max": "1440px",
+                        "base": "4px",
+                        "margin-mobile": "16px",
+                        "margin-desktop": "32px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["IBM Plex Sans"],
+                        "display-lg": ["Fraunces"],
+                        "data-sm": ["IBM Plex Mono"],
+                        "headline-md": ["Fraunces"],
+                        "body-lg": ["IBM Plex Sans"],
+                        "display-lg-mobile": ["Fraunces"],
+                        "ui-label": ["IBM Plex Sans"],
+                        "data-lg": ["IBM Plex Mono"],
+                        "data-md": ["IBM Plex Mono"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "display-lg": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "data-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "500" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "display-lg-mobile": ["32px", { "lineHeight": "38px", "fontWeight": "600" }],
+                        "ui-label": ["14px", { "lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "600" }],
+                        "data-lg": ["18px", { "lineHeight": "24px", "fontWeight": "500" }],
+                        "data-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #F3EEE2; /* Paper color fallback */
+            color: #1B1811; /* Ink color fallback */
+        }
+        
+        /* Focus styles for inputs to match the 'Brass' accent requirement */
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #A9781E !important;
+            box-shadow: inset 0 0 0 1px #A9781E !important;
+        }
+
+        /* Enforce straight corners globally to adhere to "Physical Accountability" */
+        * {
+            border-radius: 0 !important;
+        }
+        
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F3EEE2;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d4c4b1;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #827565;
+        }
+    </style>
+</head>
+<body class="bg-surface font-body-md text-on-surface antialiased min-h-screen flex">
+<!-- SideNavBar -->
+<nav class="bg-[#1B1811] text-[#F3EEE2] font-body-md text-body-md w-64 h-screen fixed left-0 top-0 border-r border-outline-variant/15 flex flex-col z-20">
+<div class="p-6 border-b border-[#F3EEE2]/15">
+<h1 class="font-headline-md text-headline-md font-bold text-[#F3EEE2] mb-1">DecisionForge</h1>
+<p class="font-data-sm text-data-sm text-[#F3EEE2]/70">Chartered Accountant Portal</p>
+</div>
+<div class="p-4">
+<button class="w-full bg-[#A9781E] text-[#F3EEE2] py-2 px-4 font-ui-label text-ui-label hover:opacity-90 transition-opacity mb-4 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">add</span>
+                New Audit Case
+            </button>
+</div>
+<div class="flex-1 overflow-y-auto py-2">
+<ul class="space-y-1">
+<li class="">
+<a class="flex items-center gap-3 px-6 py-3 text-[#F3EEE2]/70 hover:bg-[#F3EEE2]/10 transition-colors border-l-2 border-transparent" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+                        Audit Dashboard
+                    </a>
+</li>
+<li class="">
+<a class="flex items-center gap-3 px-6 py-3 text-[#F3EEE2]/70 hover:bg-[#F3EEE2]/10 transition-colors border-l-2 border-transparent" href="#">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+                        Client Ledgers
+                    </a>
+</li>
+<li class="">
+<a class="flex items-center gap-3 px-6 py-3 text-[#F3EEE2]/70 hover:bg-[#F3EEE2]/10 transition-colors border-l-2 border-transparent" href="#">
+<span class="material-symbols-outlined">fact_check</span>
+                        Compliance Check
+                    </a>
+</li>
+<li class="">
+<a class="flex items-center gap-3 px-6 py-3 text-[#F3EEE2]/70 hover:bg-[#F3EEE2]/10 transition-colors border-l-2 border-transparent" href="#">
+<span class="material-symbols-outlined">description</span>
+                        Tax Filings
+                    </a>
+</li>
+<li class="">
+<a class="flex items-center gap-3 px-6 py-3 text-[#F3EEE2]/70 hover:bg-[#F3EEE2]/10 transition-colors border-l-2 border-transparent" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+                        Document Vault
+                    </a>
+</li>
+<li class="">
+<a class="flex items-center gap-3 px-6 py-3 text-[#F3EEE2]/70 hover:bg-[#F3EEE2]/10 transition-colors border-l-2 border-transparent" href="#">
+<span class="material-symbols-outlined">analytics</span>
+                        Reporting
+                    </a>
+</li>
+</ul>
+</div>
+<div class="mt-auto border-t border-[#F3EEE2]/15 py-2">
+<ul class="space-y-1">
+<li class="">
+<a class="flex items-center gap-3 px-6 py-3 text-primary-fixed-dim border-l-2 border-primary-fixed-dim bg-[#F3EEE2]/10 transition-all duration-100" href="#">
+<span class="material-symbols-outlined">settings</span>
+                        Settings
+                    </a>
+</li>
+<li class="">
+<a class="flex items-center gap-3 px-6 py-3 text-[#F3EEE2]/70 hover:bg-[#F3EEE2]/10 transition-colors border-l-2 border-transparent" href="#">
+<span class="material-symbols-outlined">help_outline</span>
+                        Support
+                    </a>
+</li>
+</ul>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="ml-64 flex-1 flex flex-col min-h-screen">
+<!-- TopAppBar (Minimal, adhering to the setting intent) -->
+<header class="h-20 flex items-center justify-between px-margin-desktop border-b border-outline-variant/15 bg-surface sticky top-0 z-10">
+<div>
+<h2 class="font-display-lg text-display-lg text-on-surface">Configuration</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Manage system parameters and administrative identity.</p>
+</div>
+<div class="flex items-center gap-4"><button class="bg-[#A9781E] py-2 px-4 font-ui-label text-ui-label hover:opacity-90 transition-opacity flex items-center gap-2 text-[#F3EEE2]"><span class="material-symbols-outlined text-[18px]">play_arrow</span>Run Audit</button>
+<div class="w-10 h-10 bg-[#1B1811] text-[#F3EEE2] flex items-center justify-center font-ui-label text-ui-label">AD</div>
+</div>
+</header>
+<!-- Scrollable Content Canvas -->
+<div class="flex-1 p-margin-desktop overflow-y-auto">
+<div class="max-w-4xl mx-auto space-y-6 pb-20">
+<!-- Administrative Profile Section -->
+<section class="bg-[#F3EEE2] border border-outline-variant/30 p-6">
+<div class="border-b border-outline-variant/30 pb-4 mb-6 flex items-end justify-between">
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Administrative Profile</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Core details associated with the master audit account.</p>
+</div>
+<span class="font-data-sm text-data-sm text-on-surface-variant uppercase tracking-wider">Ref: 01-ADM</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+<div class="space-y-2">
+<label class="font-ui-label text-ui-label text-on-surface block">Firm Name</label>
+<input class="w-full bg-transparent border border-outline-variant/30 p-3 font-body-md text-body-md text-on-surface focus:border-primary focus:ring-0 transition-colors" type="text" value="DecisionForge Chartered Accountants">
+</div>
+<div class="space-y-2">
+<label class="font-ui-label text-ui-label text-on-surface block">Registration Number</label>
+<input class="w-full bg-transparent border border-outline-variant/30 p-3 font-data-md text-data-md text-on-surface focus:border-primary focus:ring-0 transition-colors" type="text" value="CA-99482-BR">
+</div>
+<div class="space-y-2 md:col-span-2">
+<label class="font-ui-label text-ui-label text-on-surface block">Principal Auditor Email</label>
+<input class="w-full bg-transparent border border-outline-variant/30 p-3 font-body-md text-body-md text-on-surface focus:border-primary focus:ring-0 transition-colors" type="email" value="admin@decisionforge.co">
+</div>
+</div>
+</section>
+<!-- Audit Rules Section -->
+<section class="bg-[#F3EEE2] border border-outline-variant/30 p-6">
+<div class="border-b border-outline-variant/30 pb-4 mb-6 flex items-end justify-between">
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Audit Rules &amp; Thresholds</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Configure automated flagging parameters for ledger analysis.</p>
+</div>
+<button class="text-primary font-ui-label text-ui-label hover:underline flex items-center gap-1">
+<span class="material-symbols-outlined text-[18px]">add</span> Add Rule
+                        </button>
+</div>
+<div class="border border-outline-variant/30 overflow-hidden">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-on-surface/[0.05] border-b border-outline-variant/30">
+<th class="py-3 px-4 font-ui-label text-ui-label text-on-surface border-r border-outline-variant/30 w-24">Rule ID</th>
+<th class="py-3 px-4 font-ui-label text-ui-label text-on-surface border-r border-outline-variant/30">Parameter Name</th>
+<th class="py-3 px-4 font-ui-label text-ui-label text-on-surface border-r border-outline-variant/30 w-32 text-right">Threshold</th>
+<th class="py-3 px-4 font-ui-label text-ui-label text-on-surface w-32 text-right">Weight</th>
+</tr>
+</thead>
+<tbody class="font-data-md text-data-md">
+<tr class="border-b border-outline-variant/30 hover:bg-surface-container/50 transition-colors">
+<td class="py-3 px-4 border-r border-outline-variant/30 text-on-surface-variant">R-001</td>
+<td class="py-3 px-4 border-r border-outline-variant/30 text-on-surface">Expense Variance vs Prior Year</td>
+<td class="py-3 px-4 border-r border-outline-variant/30 text-right text-primary">&gt; 15.0%</td>
+<td class="py-3 px-4 text-right">High</td>
+</tr>
+<tr class="border-b border-outline-variant/30 hover:bg-surface-container/50 transition-colors">
+<td class="py-3 px-4 border-r border-outline-variant/30 text-on-surface-variant">R-002</td>
+<td class="py-3 px-4 border-r border-outline-variant/30 text-on-surface">Unusual Cash Transaction Volume</td>
+<td class="py-3 px-4 border-r border-outline-variant/30 text-right text-primary">&gt; 50/mo</td>
+<td class="py-3 px-4 text-right">Critical</td>
+</tr>
+<tr class="border-b border-outline-variant/30 hover:bg-surface-container/50 transition-colors">
+<td class="py-3 px-4 border-r border-outline-variant/30 text-on-surface-variant">R-003</td>
+<td class="py-3 px-4 border-r border-outline-variant/30 text-on-surface">Depreciation Schedule Mismatch</td>
+<td class="py-3 px-4 border-r border-outline-variant/30 text-right text-primary">!= 0.0%</td>
+<td class="py-3 px-4 text-right">Medium</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- API Integrations Section -->
+<section class="bg-[#F3EEE2] border border-outline-variant/30 p-6">
+<div class="border-b border-outline-variant/30 pb-4 mb-6 flex items-end justify-between">
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">API Integrations</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Manage secure connections to external financial systems.</p>
+</div>
+</div>
+<div class="space-y-4">
+<div class="border border-outline-variant/30 p-5 flex items-center justify-between bg-surface-container-low">
+<div>
+<h4 class="font-ui-label text-ui-label text-on-surface">Xero General Ledger Sync</h4>
+<p class="font-data-sm text-data-sm text-on-surface-variant mt-1">Last synced: 2024-10-24 08:30 UTC</p>
+</div>
+<div class="flex items-center gap-4">
+<span class="px-2 py-1 bg-outline-variant/20 border border-outline-variant/50 font-data-sm text-data-sm text-on-surface flex items-center gap-1">
+<span class="w-1.5 h-1.5 bg-[#4CAF50] inline-block"></span> Active
+                                </span>
+<button class="text-on-surface border border-outline-variant/50 px-4 py-2 font-ui-label text-ui-label hover:bg-surface-container transition-colors">Configure</button>
+</div>
+</div>
+<div class="border border-outline-variant/30 p-5 flex items-center justify-between">
+<div>
+<h4 class="font-ui-label text-ui-label text-on-surface">QuickBooks Enterprise</h4>
+<p class="font-data-sm text-data-sm text-on-surface-variant mt-1">Not connected</p>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-on-surface border border-outline-variant/50 px-4 py-2 font-ui-label text-ui-label hover:bg-surface-container transition-colors">Connect</button>
+</div>
+</div>
+
+</div></section></div></div></main></body></html>

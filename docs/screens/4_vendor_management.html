@@ -1,0 +1,380 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Vendor Management - DecisionForge</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+            paper: "#F3EEE2",
+            ink: "#1B1811",
+            brass: "#A9781E",
+            vermillion: "#A63A2E",
+            forest: "#2C6E49",
+        },
+        fontFamily: {
+            fraunces: ['Fraunces', 'serif'],
+            sans: ['"IBM Plex Sans"', 'sans-serif'],
+            mono: ['"IBM Plex Mono"', 'monospace'],
+        }
+      },
+    },
+  }
+</script>
+<style>
+        /* Custom Utilities for Ledger Paper Aesthetic */
+        .hairline-b { border-bottom: 1px solid rgba(27, 24, 17, 0.15); }
+        .hairline-t { border-top: 1px solid rgba(27, 24, 17, 0.15); }
+        .hairline-r { border-right: 1px solid rgba(27, 24, 17, 0.15); }
+        .hairline-l { border-left: 1px solid rgba(27, 24, 17, 0.15); }
+        .hairline-all { border: 1px solid rgba(27, 24, 17, 0.15); }
+        
+        body {
+            background-color: #F3EEE2;
+            color: #1B1811;
+            font-family: "IBM Plex Sans", sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .data-cell {
+            font-family: "IBM Plex Mono", monospace;
+            color: #1B1811;
+        }
+        
+        .seal-badge {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            border: 1px solid currentColor;
+        }
+    </style>
+</head>
+<body class="bg-paper text-ink flex">
+<!-- SideNavBar -->
+<nav class="bg-[#1B1811] w-64 h-screen fixed left-0 top-0 border-r border-ink/30 flex flex-col z-20">
+<!-- Header -->
+<div class="p-6 border-b border-ink/30">
+<h1 class="font-fraunces text-2xl font-bold text-[#F3EEE2]">DecisionForge</h1>
+<p class="font-mono text-xs text-[#F3EEE2]/70 mt-1">Chartered Accountant Portal</p>
+</div>
+<!-- CTA -->
+<div class="p-4 border-b border-ink/30">
+<button class="w-full bg-transparent text-[#F3EEE2] font-sans text-sm py-2 border border-[#F3EEE2]/50 hover:bg-[#F3EEE2]/10 transition-colors flex justify-center items-center gap-2 rounded-sm">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                New Audit Case
+            </button>
+</div>
+<!-- Tabs -->
+<ul class="flex-1 overflow-y-auto py-2">
+<!-- Non-active tabs -->
+<li class="">
+<a class="flex items-center gap-3 px-6 py-3 font-sans text-sm text-[#F3EEE2]/70 hover:bg-[#1f1f21]/50 transition-colors border-l-2 border-transparent" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+                    Audit Dashboard
+                </a>
+</li>
+<li class="">
+<a class="flex items-center gap-3 px-6 py-3 font-sans text-sm text-[#F3EEE2]/70 hover:bg-[#1f1f21]/50 transition-colors border-l-2 border-transparent" href="#">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+                    Client Ledgers
+                </a>
+</li>
+<!-- Active Tab -->
+<li class="">
+<a class="flex items-center gap-3 px-6 py-3 font-sans text-sm text-[#1B1811] bg-paper border-l-2 border-brass transition-all duration-100 font-semibold" href="#">
+<span class="material-symbols-outlined text-brass">fact_check</span>
+                    Vendors
+                </a>
+</li>
+<li class="">
+<a class="flex items-center gap-3 px-6 py-3 font-sans text-sm text-[#F3EEE2]/70 hover:bg-[#1f1f21]/50 transition-colors border-l-2 border-transparent" href="#">
+<span class="material-symbols-outlined">description</span>
+                    Tax Filings
+                </a>
+</li>
+<li class="">
+<a class="flex items-center gap-3 px-6 py-3 font-sans text-sm text-[#F3EEE2]/70 hover:bg-[#1f1f21]/50 transition-colors border-l-2 border-transparent" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+                    Document Vault
+                </a>
+</li>
+<li class="">
+<a class="flex items-center gap-3 px-6 py-3 font-sans text-sm text-[#F3EEE2]/70 hover:bg-[#1f1f21]/50 transition-colors border-l-2 border-transparent" href="#">
+<span class="material-symbols-outlined">analytics</span>
+                    Reporting
+                </a>
+</li>
+</ul>
+<!-- Footer Tabs -->
+<ul class="py-4 border-t border-ink/30">
+<li class="">
+<a class="flex items-center gap-3 px-6 py-2 font-mono text-xs text-[#F3EEE2]/70 hover:bg-[#1f1f21]/50 transition-colors" href="#">
+<span class="material-symbols-outlined text-[16px]">settings</span>
+                    Settings
+                </a>
+</li>
+<li class="">
+<a class="flex items-center gap-3 px-6 py-2 font-mono text-xs text-[#F3EEE2]/70 hover:bg-[#1f1f21]/50 transition-colors" href="#">
+<span class="material-symbols-outlined text-[16px]">help_outline</span>
+                    Support
+                </a>
+</li>
+</ul>
+</nav>
+<!-- Main Content Area -->
+<div class="flex-1 ml-64 flex flex-col min-h-screen bg-paper">
+<!-- TopNavBar -->
+<header class="bg-paper docked full-width top-0 hairline-b flex justify-between items-center h-16 px-6 sticky z-10">
+<!-- Left/Search -->
+<div class="flex items-center gap-4 w-1/3">
+<div class="relative w-full max-w-sm border border-ink/15 bg-paper/50 rounded-sm">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-ink/50 text-[18px]">search</span>
+<input class="w-full bg-transparent pl-10 pr-3 py-1.5 font-mono text-sm text-ink placeholder:text-ink/50 focus:outline-none focus:border-brass focus:ring-0 transition-colors border-none" placeholder="Search Ledgers..." type="text">
+</div>
+</div>
+<!-- Right Actions -->
+<div class="flex items-center gap-6">
+<div class="flex gap-4">
+<button class="text-ink/70 hover:text-ink transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-ink/70 hover:text-ink transition-colors">
+<span class="material-symbols-outlined">history</span>
+</button>
+</div>
+<div class="hairline-l h-8 mx-2"></div>
+<button class="bg-brass border border-brass text-paper font-sans text-sm font-semibold px-4 py-1.5 hover:opacity-90 transition-colors rounded-sm">Run Audit</button>
+<div class="h-8 w-8 rounded-full bg-[#1B1811] border border-[#F3EEE2]/50 overflow-hidden ml-2">
+<img alt="CA User Profile" class="w-full h-full object-cover grayscale" data-alt="A small, professional headshot photo of a Chartered Accountant in a clean, brightly lit modern office setting, light mode aesthetic, high contrast black and white with brass accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCDDabjTtAvbW-O8wVysgLXPbnCQgQzOjGb6JeA_wJqj0n7dG3TMGI7GItabsxUVGCs9zf2RqRMvYdw0SeIFVrJwg8l72_1jKtRgGWGUvpfNQIfOmXfmgB6IJCb6koH4Fbv8X_j-kX_XI_nduUDyDTCN2L7TeFw1orxtSs3jpwp0pa5xdfCpBFPFovTCRjmXGMKGJ8wVer5OQujAQ_WRlebSKmTXZ7gqevqidoBfdostFt1kezihk8zh2fHgMeH56yMby6ziNbEWw">
+</div>
+</div>
+</header>
+<!-- Page Canvas -->
+<main class="flex-1 p-6 overflow-x-hidden">
+<!-- Page Header & Global Action -->
+<div class="flex justify-between items-end mb-8 hairline-b pb-4">
+<div>
+<h2 class="font-fraunces text-3xl font-bold text-ink">Vendor Management</h2>
+<p class="font-sans text-sm text-ink/70 mt-2">Centralized Registry &amp; Compliance Monitoring</p>
+</div>
+<button class="bg-brass border border-brass text-paper font-sans text-sm font-semibold px-4 py-2 hover:opacity-90 transition-colors flex items-center gap-2 rounded-sm"><span class="material-symbols-outlined text-[18px]">person_add</span>Onboard New Vendor</button>
+</div>
+<!-- KPI Summary Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<!-- KPI Card 1 -->
+<div class="bg-paper/50 hairline-all p-6 rounded-sm">
+<div class="flex justify-between items-start mb-4">
+<span class="font-sans text-xs font-semibold text-ink/70 uppercase tracking-wider">Active Vendors</span>
+<span class="material-symbols-outlined text-ink/50">corporate_fare</span>
+</div>
+<div class="font-mono text-3xl leading-none text-ink font-semibold">1,402</div>
+<div class="mt-4 flex items-center gap-2 font-sans text-sm">
+<span class="text-forest flex items-center"><span class="material-symbols-outlined text-[14px]">arrow_upward</span> +12%</span>
+<span class="text-ink/50">vs last quarter</span>
+</div>
+</div>
+<!-- KPI Card 2 -->
+<div class="bg-paper/50 hairline-all p-6 rounded-sm">
+<div class="flex justify-between items-start mb-4">
+<span class="font-sans text-xs font-semibold text-ink/70 uppercase tracking-wider">Avg Compliance Score</span>
+<span class="material-symbols-outlined text-ink/50">health_and_safety</span>
+</div>
+<div class="font-mono text-3xl leading-none text-ink font-semibold">94.2/100</div>
+<div class="mt-4 flex items-center gap-2 font-sans text-sm">
+<span class="text-vermillion flex items-center"><span class="material-symbols-outlined text-[14px]">arrow_downward</span> -1.5</span>
+<span class="text-ink/50">requires attention</span>
+</div>
+</div>
+<!-- KPI Card 3 -->
+<div class="bg-paper/50 hairline-all p-6 rounded-sm">
+<div class="flex justify-between items-start mb-4">
+<span class="font-sans text-xs font-semibold text-ink/70 uppercase tracking-wider">Total ITC Contribution</span>
+<span class="material-symbols-outlined text-ink/50">payments</span>
+</div>
+<div class="font-mono text-3xl leading-none text-ink font-semibold">₹ 4.2Cr</div>
+<div class="mt-4 flex items-center gap-2 font-sans text-sm">
+<span class="text-ink/50">FY 2023-24</span>
+</div>
+</div>
+</div>
+<!-- Centralized Vendor Registry Table -->
+<div class="bg-paper/50 hairline-all rounded-sm text-ink">
+<div class="p-4 hairline-b flex justify-between items-center bg-ink/5">
+<h3 class="font-fraunces text-lg font-semibold text-ink">Vendor Ledger Registry</h3>
+<div class="flex gap-2">
+<button class="border border-ink/15 px-3 py-1 font-mono text-xs text-ink flex items-center gap-1 hover:bg-ink/5 transition-colors rounded-sm">
+<span class="material-symbols-outlined text-[16px]">filter_list</span> Filter
+                        </button>
+<button class="border border-ink/15 px-3 py-1 font-mono text-xs text-ink flex items-center gap-1 hover:bg-ink/5 transition-colors rounded-sm">
+<span class="material-symbols-outlined text-[16px]">download</span> Export
+                        </button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-ink/5 hairline-b font-sans text-xs text-ink/70">
+<th class="py-3 px-4 font-semibold">Vendor Name</th>
+<th class="py-3 px-4 font-semibold">GSTIN Registration</th>
+<th class="py-3 px-4 font-semibold text-right">ITC Value (YTD)</th>
+<th class="py-3 px-4 font-semibold text-right">Compliance Score</th>
+<th class="py-3 px-4 font-semibold text-center">Status</th>
+<th class="py-3 px-4 font-semibold text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="font-sans text-sm"><!-- Row 1: Reliance Industries Ltd -->
+<tr class="hairline-b hover:bg-ink/5 transition-colors">
+<td class="py-3 px-4">
+<div class="font-medium text-ink">Reliance Industries Ltd</div>
+<div class="font-mono text-xs text-ink/50 mt-1">VND-RIL-001</div>
+</td>
+<td class="py-3 px-4 font-mono text-ink">27AAACR1234F1Z5</td>
+<td class="py-3 px-4 font-mono text-ink text-right">₹ 12.45Cr</td>
+<td class="py-3 px-4 text-right">
+<span class="font-mono text-ink">99%</span>
+</td>
+<td class="py-3 px-4 text-center">
+<span class="seal-badge text-forest bg-forest/10 border-forest" title="Verified">
+<span class="material-symbols-outlined text-[14px]">check</span>
+</span>
+</td>
+<td class="py-3 px-4 text-right">
+<button class="text-ink/50 hover:text-ink transition-colors">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 2: Tata Consultancy Services -->
+<tr class="hairline-b hover:bg-ink/5 transition-colors">
+<td class="py-3 px-4">
+<div class="font-medium text-ink">Tata Consultancy Services</div>
+<div class="font-mono text-xs text-ink/50 mt-1">VND-TCS-042</div>
+</td>
+<td class="py-3 px-4 font-mono text-ink">27AAACT1234A1Z1</td>
+<td class="py-3 px-4 font-mono text-ink text-right">₹ 8.12Cr</td>
+<td class="py-3 px-4 text-right">
+<span class="font-mono text-ink">96%</span>
+</td>
+<td class="py-3 px-4 text-center">
+<span class="seal-badge text-forest bg-forest/10 border-forest" title="Verified">
+<span class="material-symbols-outlined text-[14px]">check</span>
+</span>
+</td>
+<td class="py-3 px-4 text-right">
+<button class="text-ink/50 hover:text-ink transition-colors">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 3: Infosys Limited -->
+<tr class="hairline-b hover:bg-ink/5 transition-colors">
+<td class="py-3 px-4">
+<div class="font-medium text-ink">Infosys Limited</div>
+<div class="font-mono text-xs text-ink/50 mt-1">VND-INF-089</div>
+</td>
+<td class="py-3 px-4 font-mono text-ink">29AAACI1234L1Z2</td>
+<td class="py-3 px-4 font-mono text-ink text-right">₹ 4.5Cr</td>
+<td class="py-3 px-4 text-right">
+<span class="font-mono text-ink">82%</span>
+</td>
+<td class="py-3 px-4 text-center">
+<span class="seal-badge text-brass bg-brass/10 border-brass" title="Pending Review">
+<span class="material-symbols-outlined text-[14px]">pending</span>
+</span>
+</td>
+<td class="py-3 px-4 text-right">
+<button class="text-ink/50 hover:text-ink transition-colors">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 4: Adani Enterprises -->
+<tr class="hairline-b hover:bg-ink/5 transition-colors bg-vermillion/5">
+<td class="py-3 px-4">
+<div class="font-medium text-ink">Adani Enterprises</div>
+<div class="font-mono text-xs text-ink/50 mt-1">VND-ADE-112</div>
+</td>
+<td class="py-3 px-4 font-mono text-ink">24AAACA1234E1Z3</td>
+<td class="py-3 px-4 font-mono text-ink text-right">₹ 95L</td>
+<td class="py-3 px-4 text-right">
+<span class="font-mono text-ink">58%</span>
+</td>
+<td class="py-3 px-4 text-center">
+<span class="seal-badge text-vermillion bg-vermillion/10 border-vermillion" title="High Risk">
+<span class="material-symbols-outlined text-[14px]">priority_high</span>
+</span>
+</td>
+<td class="py-3 px-4 text-right">
+<button class="text-ink/50 hover:text-ink transition-colors">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 5: Larsen & Toubro -->
+<tr class="hover:bg-ink/5 transition-colors">
+<td class="py-3 px-4">
+<div class="font-medium text-ink">Larsen &amp; Toubro</div>
+<div class="font-mono text-xs text-ink/50 mt-1">VND-LNT-204</div>
+</td>
+<td class="py-3 px-4 font-mono text-ink">27AAACL1234T1Z4</td>
+<td class="py-3 px-4 font-mono text-ink text-right">₹ 2.8Cr</td>
+<td class="py-3 px-4 text-right">
+<span class="font-mono text-ink">92%</span>
+</td>
+<td class="py-3 px-4 text-center">
+<span class="seal-badge text-forest bg-forest/10 border-forest" title="Verified">
+<span class="material-symbols-outlined text-[14px]">check</span>
+</span>
+</td>
+<td class="py-3 px-4 text-right">
+<button class="text-ink/50 hover:text-ink transition-colors">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</td>
+</tr></tbody>
+</table>
+</div>
+<!-- Pagination / Footer of table -->
+<div class="p-3 hairline-t flex justify-between items-center bg-ink/5 font-mono text-xs text-ink/70 rounded-b-sm">
+<span class="">Showing 1-4 of 1,402 entries</span>
+<div class="flex gap-1">
+<button class="px-2 py-1 border border-ink/15 hover:bg-ink/10 transition-colors disabled:opacity-50 rounded-sm" disabled="">&lt;</button>
+<button class="px-2 py-1 border border-ink/15 bg-paper text-ink transition-colors rounded-sm">1</button>
+<button class="px-2 py-1 border border-ink/15 hover:bg-ink/10 transition-colors rounded-sm">2</button>
+<button class="px-2 py-1 border border-ink/15 hover:bg-ink/10 transition-colors rounded-sm">3</button>
+<span class="px-2 py-1">...</span>
+<button class="px-2 py-1 border border-ink/15 hover:bg-ink/10 transition-colors rounded-sm">&gt;</button>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-transparent w-full py-4 hairline-t flex justify-between items-center px-6 mt-auto z-10">
+<div class="font-mono text-xs text-ink/50">
+                © 2024 DecisionForge Audit Systems. Immutable Ledger Technology.
+            </div>
+<div class="flex gap-6">
+<a class="font-mono text-xs text-ink/50 hover:text-ink underline transition-opacity" href="#">Terms of Service</a>
+<a class="font-mono text-xs text-ink/50 hover:text-ink underline transition-opacity" href="#">Privacy Protocol</a>
+<a class="font-mono text-xs text-ink/50 hover:text-ink underline transition-opacity" href="#">Regulatory Disclosure</a>
+</div>
+</footer>
+</div>
+
+
+</body></html>

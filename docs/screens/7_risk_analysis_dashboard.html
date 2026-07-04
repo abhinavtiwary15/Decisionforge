@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Risk Analysis Dashboard | GST Ledger Pro</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@400;500;700&amp;family=IBM+Plex+Sans:wght@400;500;700&amp;family=Jetbrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">tailwind.config = {darkMode: "class", theme: {extend: {colors: {tertiary: "#e9c176", "on-primary-fixed-variant": "#41474f", primary: "#c1c7d1", "surface-variant": "#2b3642", "on-tertiary": "#412d00", "on-secondary-container": "#b5b5b2", "on-surface-variant": "#c5c6cd", "surface-dim": "#091420", "on-secondary-fixed-variant": "#464744", "on-secondary": "#30312e", "primary-fixed-dim": "#c1c7d1", "inverse-primary": "#595f67", "primary-fixed": "#dde3ed", "outline-variant": "#44474c", "on-tertiary-fixed": "#261900", "surface-container-highest": "#2b3642", "surface-container-high": "#202b37", "secondary-fixed-dim": "#c7c6c3", background: "#091420", "on-primary-container": "#7e848d", "on-error-container": "#ffdad6", "on-tertiary-fixed-variant": "#5d4201", "surface-bright": "#2f3a47", "on-secondary-fixed": "#1b1c1a", "surface-container": "#16202c", "secondary-fixed": "#e3e2df", "on-background": "#d8e3f4", "on-primary": "#2b3139", "tertiary-fixed-dim": "#e9c176", error: "#ffb4ab", "surface-container-low": "#111c28", "on-tertiary-container": "#a07e3a", "surface-tint": "#c1c7d1", "inverse-surface": "#d8e3f4", secondary: "#c7c6c3", "on-error": "#690005", surface: "#091420", outline: "#8f9097", "on-surface": "#d8e3f4", "error-container": "#93000a", "primary-container": "#151b22", "tertiary-fixed": "#ffdea5", "on-primary-fixed": "#161c23", "inverse-on-surface": "#27313e", "tertiary-container": "#251800", "surface-container-lowest": "#040f1a", "secondary-container": "#464744"}, borderRadius: {DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px"}, spacing: {"ledger-row": "40px", "margin-desktop": "32px", gutter: "16px", unit: "4px", "margin-mobile": "16px"}, fontFamily: {"label-caps": ["Hanken Grotesk"], "body-md": ["Hanken Grotesk"], "headline-lg": ["\"Source Serif 4\""], "body-lg": ["Hanken Grotesk"], "display-lg": ["\"Source Serif 4\""], "headline-md": ["\"Source Serif 4\""], "data-mono": ["JetBrains Mono"], headline: ["IBM Plex Serif"], display: ["IBM Plex Serif"], body: ["IBM Plex Sans"], label: ["Jetbrains Mono"]}, fontSize: {"label-caps": ["12px", {lineHeight: "16px", letterSpacing: "0.08em", fontWeight: "700"}], "body-md": ["16px", {lineHeight: "24px", fontWeight: "400"}], "headline-lg": ["32px", {lineHeight: "40px", fontWeight: "600"}], "body-lg": ["18px", {lineHeight: "28px", fontWeight: "400"}], "display-lg": ["40px", {lineHeight: "48px", letterSpacing: "-0.02em", fontWeight: "700"}], "headline-md": ["24px", {lineHeight: "32px", fontWeight: "600"}], "data-mono": ["14px", {lineHeight: "20px", letterSpacing: "0.02em", fontWeight: "500"}]}}}};</script>
+<style>
+        body {
+            background-color: #001807; /* Fallback for Ink Navy surface */
+        }
+        .ledger-parchment {
+            background-color: #EDE4D3; /* Custom Parchment tone from prompt description */
+            border: 1px solid rgba(15, 27, 45, 0.2);
+            box-shadow: 2px 2px 0px 0px #0F1B2D; /* Carbon Copy Effect */
+        }
+        .perforated-divider {
+            background-image: linear-gradient(to right, #44474c 50%, transparent 50%);
+            background-size: 6px 1px;
+            background-repeat: repeat-x;
+            height: 1px;
+        }
+        .ruled-line {
+            border-bottom: 1px solid rgba(15, 27, 45, 0.1);
+        }
+        .seal-badge {
+            border: 2px double currentColor;
+            border-radius: 50%;
+            transform: rotate(-5deg);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #44474c;
+        }
+    </style>
+</head>
+<body class="antialiased text-on-surface">
+<!-- TopNavBar -->
+<header class="fixed top-0 left-0 w-full z-50 bg-background border-b border-outline-variant px-margin-desktop py-unit flex justify-between items-center h-16">
+<div class="flex items-center gap-8">
+<span class="font-display-lg text-display-lg text-primary">GST Ledger Pro</span>
+<div class="relative hidden md:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="bg-surface-container border-none pl-10 pr-4 py-2 text-label-caps font-label-caps w-64 focus:ring-1 focus:ring-primary" placeholder="Search Audit Records..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-gutter">
+<button class="hover:bg-primary-container p-2 transition-colors"><span class="material-symbols-outlined text-primary">notifications</span></button>
+<button class="hover:bg-primary-container p-2 transition-colors"><span class="material-symbols-outlined text-primary">help</span></button>
+<div class="flex items-center gap-2 pl-gutter border-l border-outline-variant">
+<span class="font-label-caps text-label-caps text-primary-container">A. KAPOOR</span>
+<span class="material-symbols-outlined text-primary-container bg-surface-container-low rounded-full" data-weight="fill">account_circle</span>
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-16 h-[calc(100vh-64px)] w-64 bg-surface-container-low border-r border-outline-variant flex flex-col py-margin-desktop gap-unit transition-all duration-150">
+<div class="px-gutter mb-8">
+<p class="font-headline-md text-headline-md text-primary">Fiscal Authority</p>
+<p class="font-label-caps text-label-caps text-on-surface-variant">Verified Accountant</p>
+</div>
+<nav class="flex-1 flex flex-col">
+<a class="flex items-center gap-4 px-gutter py-3 text-on-surface-variant hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-caps text-label-caps">Overview</span>
+</a>
+<a class="flex items-center gap-4 px-gutter py-3 text-on-surface-variant hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined">account_balance</span>
+<span class="font-label-caps text-label-caps">Reconciliation</span>
+</a>
+<a class="flex items-center gap-4 px-gutter py-3 bg-secondary-container text-on-secondary-container border-r-4 border-primary font-bold" href="#">
+<span class="material-symbols-outlined">warning</span>
+<span class="font-label-caps text-label-caps">Risk</span>
+</a>
+<a class="flex items-center gap-4 px-gutter py-3 text-on-surface-variant hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined">rule</span>
+<span class="font-label-caps text-label-caps">Mismatch Queue</span>
+</a>
+<a class="flex items-center gap-4 px-gutter py-3 text-on-surface-variant hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined">store</span>
+<span class="font-label-caps text-label-caps">Vendors</span>
+</a>
+<a class="flex items-center gap-4 px-gutter py-3 text-on-surface-variant hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="font-label-caps text-label-caps">Reports</span>
+</a>
+<a class="flex items-center gap-4 px-gutter py-3 text-on-surface-variant hover:bg-surface-container-high transition-all mt-auto" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-caps text-label-caps">Settings</span>
+</a>
+</nav>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-64 mt-16 p-margin-desktop min-h-screen flex flex-col gap-margin-desktop">
+<!-- Header Section -->
+<section class="flex justify-between items-end">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-on-background">Risk &amp; ITC Analysis Console</h1>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl mt-unit">Institutional-grade risk assessment of Input Tax Credit exposures. Benchmarking reconciliation engine performance across GPU-accelerated clusters.</p>
+</div>
+<div class="flex gap-gutter"><button class="bg-tertiary text-on-tertiary px-gutter py-2 flex items-center gap-2 font-label-caps text-label-caps hover:opacity-90 transition-all"><span class="material-symbols-outlined text-[18px]">play_arrow</span> RUN AUDIT</button>
+<button class="border border-primary-container text-primary-container px-gutter py-2 flex items-center gap-2 font-label-caps text-label-caps hover:bg-primary-container hover:text-white transition-all"><span class="material-symbols-outlined text-[18px]">download</span> EXPORT AUDIT LOG</button>
+</div>
+</section>
+<!-- Bento Grid for Analysis -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Geo Risk Map (Large) -->
+<div class="col-span-12 lg:col-span-8 ledger-parchment p-gutter flex flex-col min-h-[400px]">
+<div class="flex justify-between items-center mb-4">
+<h2 class="font-headline-md text-headline-md text-primary-container">Geographical Exposure Heatmap</h2>
+<span class="seal-badge px-3 py-1 text-error font-label-caps text-label-caps border-error">LIVE AUDIT</span>
+</div>
+<div class="flex-1 relative bg-surface-container overflow-hidden group">
+<div class="absolute inset-0 grayscale contrast-125 opacity-40 mix-blend-overlay" data-alt="A detailed, high-contrast monochrome topographical map of India with sharp geographical details, stylized as a vintage surveyor's map with fine line work. The image uses a dark ink navy and parchment color palette, fitting an institutional audit theme." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDAVlDM5S6-o24aW28S7PfLaPcMasYpvjrrby-G5FVtSaAyLmOcCNA6NWrA_TxFjLI-k_qlfb_PdRAwwB2I2xO00wQIM1wdb7X0L13Eaquux7Sdm5FTLfPNR83Rh2YAp4_McJneOKsLnmMTb1CQGhRdOwy3rZnBvi_lXs3Bzvu1WwM9bPsy6Qqk335vzj2L6ILSwo3Sj9URUm5sD9lAUMbkgbmPDoM8X3Zr0ajnQF7zwIxHL46MBNCbJboCayvfMzG2KXy39oQeAw')"></div>
+<!-- Mock Map Markers -->
+<div class="absolute top-1/4 left-1/3 w-12 h-12 rounded-full border-4 border-error/50 bg-error/20 flex items-center justify-center animate-pulse">
+<span class="text-[10px] font-bold text-error">HIGH</span>
+</div>
+<div class="absolute bottom-1/3 right-1/4 w-8 h-8 rounded-full border-2 border-tertiary/50 bg-tertiary/20 flex items-center justify-center">
+<span class="text-[8px] font-bold text-tertiary">MED</span>
+</div>
+</div>
+<div class="mt-4 flex gap-8">
+<div>
+<p class="font-label-caps text-label-caps text-primary-container/60">HIGHEST CONCENTRATION</p>
+<p class="font-data-mono text-data-mono text-primary-container">Maharashtra (₹42.8 Cr)</p>
+</div>
+<div>
+<p class="font-label-caps text-label-caps text-primary-container/60">ACTIVE FILINGS</p>
+<p class="font-data-mono text-data-mono text-primary-container">12,492 / Monthly</p>
+</div>
+</div>
+</div>
+<!-- ITC Exposure Rankings -->
+<div class="col-span-12 lg:col-span-4 ledger-parchment p-gutter">
+<h2 class="font-headline-md text-headline-md text-primary-container mb-4">ITC Exposure Rankings</h2>
+<div class="flex flex-col gap-2">
+<div class="ruled-line py-3 flex justify-between items-center group cursor-pointer hover:bg-black/5">
+<div>
+<p class="font-label-caps text-label-caps text-primary-container">RELIANCE IND. LTD</p>
+<p class="text-[10px] font-data-mono text-on-surface-variant">GSTIN: 27AAAAA0000A1Z5</p>
+</div>
+<p class="font-data-mono text-data-mono text-error">₹182.4M</p>
+</div>
+<div class="ruled-line py-3 flex justify-between items-center group cursor-pointer hover:bg-black/5">
+<div>
+<p class="font-label-caps text-label-caps text-primary-container">TATA CONSULTANCY</p>
+<p class="text-[10px] font-data-mono text-on-surface-variant">GSTIN: 27BBBBB1111B1Z2</p>
+</div>
+<p class="font-data-mono text-data-mono text-error">₹94.2M</p>
+</div>
+<div class="ruled-line py-3 flex justify-between items-center group cursor-pointer hover:bg-black/5">
+<div>
+<p class="font-label-caps text-label-caps text-primary-container">INFOSYS LIMITED</p>
+<p class="text-[10px] font-data-mono text-on-surface-variant">GSTIN: 29CCCCC2222C1Z8</p>
+</div>
+<p class="font-data-mono text-data-mono text-tertiary">₹61.0M</p>
+</div>
+<div class="ruled-line py-3 flex justify-between items-center group cursor-pointer hover:bg-black/5">
+<div>
+<p class="font-label-caps text-label-caps text-primary-container">ADANI ENTERPRISES</p>
+<p class="text-[10px] font-data-mono text-on-surface-variant">GSTIN: 24DDDDD3333D1Z9</p>
+</div>
+<p class="font-data-mono text-data-mono text-tertiary">₹44.8M</p>
+</div>
+<div class="ruled-line py-3 flex justify-between items-center group cursor-pointer hover:bg-black/5">
+<div>
+<p class="font-label-caps text-label-caps text-primary-container">HDFC BANK CORP</p>
+<p class="text-[10px] font-data-mono text-on-surface-variant">GSTIN: 27EEEEE4444E1Z4</p>
+</div>
+<p class="font-data-mono text-data-mono text-primary-container">₹31.2M</p>
+</div>
+</div>
+<button class="w-full mt-gutter py-2 border border-primary-container font-label-caps text-label-caps text-primary-container hover:bg-primary-container hover:text-white transition-all">VIEW ALL CLIENTS</button>
+</div>
+<!-- Acceleration Benchmark Section -->
+<div class="col-span-12 ledger-parchment p-margin-desktop">
+<div class="flex justify-between items-center mb-8">
+<div>
+<h2 class="font-headline-md text-headline-md text-primary-container">Acceleration Benchmark</h2>
+<p class="font-label-caps text-label-caps text-on-surface-variant">Computational Ledger Sync Performance</p>
+</div>
+<div class="flex gap-4">
+<div class="text-right">
+<p class="font-label-caps text-label-caps text-on-surface-variant">DATASET SIZE</p>
+<p class="font-data-mono text-data-mono text-primary-container">482,000,000 ROWS</p>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-12 relative">
+<!-- Vertical Divider -->
+<div class="hidden md:block absolute left-1/2 top-0 bottom-0 w-px perforated-divider rotate-90 origin-top"></div>
+<!-- Pandas Section -->
+<div class="flex flex-col gap-6">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary-container">settings_backup_restore</span>
+<h3 class="font-headline-md text-headline-md text-primary-container">Standard Processing</h3>
+</div>
+<div class="p-gutter border-2 border-primary-container/20">
+<p class="font-label-caps text-label-caps text-on-surface-variant mb-2">ENGINE: PANDAS (CPU)</p>
+<div class="flex items-end gap-2">
+<span class="font-display-lg text-display-lg text-primary-container leading-none">14.2</span>
+<span class="font-label-caps text-label-caps text-primary-container mb-2">MINUTES</span>
+</div>
+<div class="w-full h-8 bg-primary-container/10 mt-4 relative">
+<div class="absolute inset-y-0 left-0 bg-primary-container w-full"></div>
+<span class="absolute inset-0 flex items-center justify-center font-data-mono text-[10px] text-white">CPU SATURATION: 98%</span>
+</div>
+</div>
+<p class="font-body-md text-body-md text-primary-container/80 italic">"Traditional linear reconciliation struggles with cross-quarter multi-entity dependencies."</p>
+</div>
+<!-- GPU Section -->
+<div class="flex flex-col gap-6">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-tertiary">bolt</span>
+<h3 class="font-headline-md text-headline-md text-tertiary-container">Vectorized Engine</h3>
+</div>
+<div class="p-gutter border-2 border-tertiary-container/40 bg-tertiary/5">
+<p class="font-label-caps text-label-caps text-on-surface-variant mb-2">ENGINE: NVIDIA RAPIDS (GPU)</p>
+<div class="flex items-end gap-2">
+<span class="font-display-lg text-display-lg text-tertiary-container leading-none">0.8</span>
+<span class="font-label-caps text-label-caps text-tertiary-container mb-2">SECONDS</span>
+</div>
+<div class="w-full h-8 bg-tertiary/20 mt-4 relative">
+<div class="absolute inset-y-0 left-0 bg-tertiary-container w-[6%]"></div>
+<span class="absolute inset-0 flex items-center justify-center font-data-mono text-[10px] text-tertiary-container font-bold">GPU LOAD: 4.2%</span>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="seal-badge border-tertiary text-tertiary-container p-2 flex flex-col items-center justify-center aspect-square w-24">
+<span class="text-[10px] font-bold">SPEEDUP</span>
+<span class="text-lg font-bold">1065x</span>
+</div>
+<p class="font-body-md text-body-md text-primary-container/80">Massively parallelized join operations across GSTR-2B and Purchase Registers.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Mismatch Type Distribution (Horizontal Ledger Bar) -->
+<div class="col-span-12 ledger-parchment p-gutter">
+<div class="flex justify-between items-center mb-6">
+<h2 class="font-headline-md text-headline-md text-primary-container">Mismatch Type Distribution</h2>
+<div class="flex gap-4 items-center">
+<span class="flex items-center gap-2 font-label-caps text-[10px] text-primary-container"><span class="w-2 h-2 bg-error"></span> CRITICAL</span>
+<span class="flex items-center gap-2 font-label-caps text-[10px] text-primary-container"><span class="w-2 h-2 bg-tertiary"></span> MODERATE</span>
+<span class="flex items-center gap-2 font-label-caps text-[10px] text-primary-container"><span class="w-2 h-2 bg-primary-container"></span> PROCEDURAL</span>
+</div>
+</div>
+<!-- Large Segmented Bar -->
+<div class="w-full flex h-16 border border-primary-container overflow-hidden rounded-sm">
+<div class="h-full bg-error flex flex-col items-center justify-center text-white" style="width: 45%;">
+<span class="font-data-mono text-data-mono">45%</span>
+<span class="text-[8px] font-bold">ITC OVERCLAIM</span>
+</div>
+<div class="h-full bg-tertiary flex flex-col items-center justify-center text-on-tertiary" style="width: 25%;">
+<span class="font-data-mono text-data-mono">25%</span>
+<span class="text-[8px] font-bold">GSTIN MISMATCH</span>
+</div>
+<div class="h-full bg-primary-container flex flex-col items-center justify-center text-white" style="width: 20%;">
+<span class="font-data-mono text-data-mono">20%</span>
+<span class="text-[8px] font-bold">DATE VARIANCE</span>
+</div>
+<div class="h-full bg-on-surface-variant/20 flex flex-col items-center justify-center text-primary-container" style="width: 10%;">
+<span class="font-data-mono text-data-mono">10%</span>
+<span class="text-[8px] font-bold">OTHER</span>
+</div>
+</div>
+<div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gutter">
+<div class="ruled-line py-2">
+<p class="font-label-caps text-label-caps text-on-surface-variant">ITC OVERCLAIM</p>
+<p class="font-headline-md text-headline-md text-error">₹248.5 Cr</p>
+<p class="text-[10px] text-primary-container/60 mt-1">Found in 14,203 Invoices</p>
+</div>
+<div class="ruled-line py-2">
+<p class="font-label-caps text-label-caps text-on-surface-variant">GSTIN MISMATCH</p>
+<p class="font-headline-md text-headline-md text-tertiary-container">₹112.1 Cr</p>
+<p class="text-[10px] text-primary-container/60 mt-1">Vendor data corruption risk</p>
+</div>
+<div class="ruled-line py-2">
+<p class="font-label-caps text-label-caps text-on-surface-variant">DATE VARIANCE</p>
+<p class="font-headline-md text-headline-md text-primary-container">₹89.4 Cr</p>
+<p class="text-[10px] text-primary-container/60 mt-1">Period overlap identified</p>
+</div>
+<div class="ruled-line py-2">
+<p class="font-label-caps text-label-caps text-on-surface-variant">RECOVERABLE LOSS</p>
+<p class="font-headline-md text-headline-md text-surface-variant">₹18.2 Cr</p>
+<p class="text-[10px] text-primary-container/60 mt-1">Reversal recommended</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer -->
+<footer class="w-full py-gutter border-t-2 border-dashed border-outline-variant flex justify-between items-center px-margin-desktop mt-auto">
+<div class="flex items-center gap-8">
+<span class="font-label-caps text-label-caps text-tertiary">GST RECONCILIATION LEDGER</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant">© 2024. OFFICIAL COMPLIANCE STANDARD.</span>
+</div>
+<div class="flex gap-gutter">
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-opacity" href="#">Privacy Policy</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-opacity" href="#">Terms of Service</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-opacity" href="#">GSTN Guidelines</a>
+</div>
+</footer>
+</main>
+<!-- FAB (Suppressed on this sub-analysis page per rules, but showing context) -->
+<!-- The FAB is usually only for Home/Dashboard. On Risk Analysis, we prioritize Data Density. -->
+<script>
+        // Micro-interactions for ledger elements
+        document.querySelectorAll('.ruled-line').forEach(item => {
+            item.addEventListener('mouseenter', () => {
+                item.style.backgroundColor = 'rgba(15, 27, 45, 0.03)';
+            });
+            item.addEventListener('mouseleave', () => {
+                item.style.backgroundColor = 'transparent';
+            });
+        });
+
+        // Simple animation for the comparison bars on load
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('Ledger Console Initialized');
+        });
+    </script>
+</body></html>

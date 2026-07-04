@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>DecisionForge - Invoice Detail</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&amp;family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&amp;family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&amp;family=Literata:ital,opsz,wght@0,7..72,200..900;1,7..72,200..900&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "background": "#F3EEE2",
+                "ledger-panel": "#F3EEE2",
+                "ledger-text": "#1B1811"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+        },
+        "spacing": {
+                "table-row-height": "32px",
+                "unit": "4px",
+                "sidebar-width": "240px",
+                "container-padding": "24px",
+                "gutter": "16px",
+                "container-max": "1440px"
+        },
+        "fontFamily": {
+                "body-md": [
+                        "IBMPlexSans"
+                ],
+                "headline-md": [
+                        "Literata"
+                ],
+                "title-sm": [
+                        "IBMPlexSans"
+                ],
+                "data-mono": [
+                        "IBMPlexMono"
+                ],
+                "body-sm": [
+                        "IBMPlexSans"
+                ],
+                "data-mono-lg": [
+                        "IBMPlexMono"
+                ],
+                "display-lg": [
+                        "Literata"
+                ]
+        },
+        "fontSize": {
+                "body-md": [
+                        "14px",
+                        {
+                                "lineHeight": "1.6",
+                                "fontWeight": "400"
+                        }
+                ],
+                "headline-md": [
+                        "24px",
+                        {
+                                "lineHeight": "1.3",
+                                "fontWeight": "600"
+                        }
+                ],
+                "title-sm": [
+                        "16px",
+                        {
+                                "lineHeight": "1.5",
+                                "letterSpacing": "0.05em",
+                                "fontWeight": "600"
+                        }
+                ],
+                "data-mono": [
+                        "13px",
+                        {
+                                "lineHeight": "1.2",
+                                "fontWeight": "500"
+                        }
+                ],
+                "body-sm": [
+                        "12px",
+                        {
+                                "lineHeight": "1.4",
+                                "fontWeight": "400"
+                        }
+                ],
+                "data-mono-lg": [
+                        "15px",
+                        {
+                                "lineHeight": "1.2",
+                                "fontWeight": "600"
+                        }
+                ],
+                "display-lg": [
+                        "32px",
+                        {
+                                "lineHeight": "1.2",
+                                "letterSpacing": "-0.02em",
+                                "fontWeight": "700"
+                        }
+                ]
+        }
+},
+    },
+  }
+</script>
+<style>
+        body {
+            background-color: #F3EEE2;
+            color: #1B1811;
+        }
+        /* Custom styles for the Ledger Aesthetic */
+        .hairline-border {
+            border: 1px solid rgba(27, 24, 17, 0.15); /* 15% Ink */
+        }
+        .hairline-border-b {
+            border-bottom: 1px solid rgba(27, 24, 17, 0.15);
+        }
+        .hairline-border-t {
+            border-top: 1px solid rgba(27, 24, 17, 0.15);
+        }
+        .hairline-border-r {
+            border-right: 1px solid rgba(27, 24, 17, 0.15);
+        }
+        .perforated-divider {
+            background-image: linear-gradient(to bottom, rgba(27, 24, 17, 0.3) 50%, transparent 50%);
+            background-size: 1px 12px;
+            background-repeat: repeat-y;
+            width: 1px;
+        }
+        
+        .audit-stamp {
+            border: 4px solid #a63a2e;
+            color: #a63a2e;
+            padding: 8px 24px;
+            text-transform: uppercase;
+            font-family: 'Literata', serif;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            transform: rotate(-12deg);
+            background: transparent;
+            box-shadow: inset 0 0 0 2px #a63a2e, 0 0 0 2px rgba(166, 58, 46, 0.5); /* Enhanced double line trick */
+            pointer-events: none;
+            opacity: 0.2; /* Updated to 20% opacity */
+        }
+        /* Grid setup */
+        .ledger-grid {
+            display: grid;
+            grid-template-columns: repeat(12, minmax(0, 1fr));
+            gap: 16px;
+        }
+        
+        /* New Risk Score Circular Gauge style */
+        .risk-gauge {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 4px solid #a63a2e; /* High risk red */
+            color: #a63a2e;
+            font-family: 'IBMPlexMono', monospace;
+            font-weight: bold;
+            font-size: 24px;
+            position: relative;
+            background-color: transparent;
+        }
+        .risk-gauge::before {
+             content: '';
+             position: absolute;
+             top: -8px; left: -8px; right: -8px; bottom: -8px;
+             border: 1px dashed rgba(166, 58, 46, 0.4);
+             border-radius: 50%;
+        }
+      </style>
+</head>
+<body class="font-body-md text-body-md min-h-screen flex antialiased">
+<!-- TopNavBar (Semantic Shell) -->
+<nav class="bg-[#F3EEE2] text-[#1B1811] font-body-md text-body-md docked full-width top-0 border-b border-[#1B1811]/15 flex justify-between items-center h-16 px-container-padding ml-[240px] fixed w-[calc(100%-240px)] z-50">
+<div class="flex items-center gap-4">
+<span class="font-headline-md text-headline-md font-bold text-[#1B1811]">DecisionForge</span>
+</div>
+<div class="flex items-center gap-6">
+<span class="material-symbols-outlined text-[#1B1811]/70 cursor-pointer hover:text-[#1B1811] transition-colors">notifications</span>
+<span class="material-symbols-outlined text-[#1B1811]/70 cursor-pointer hover:text-[#1B1811] transition-colors">history</span>
+<button class="bg-[#1B1811] text-[#F3EEE2] px-4 py-2 font-title-sm text-title-sm hover:bg-[#1B1811]/80 transition-colors rounded" style="background-color: #A9781E; color: #F3EEE2;">Run Audit</button>
+<div class="w-8 h-8 bg-transparent rounded-full hairline-border flex items-center justify-center overflow-hidden">
+<img alt="CA User Profile" class="w-full h-full object-cover" data-alt="A small circular profile avatar for a Chartered Accountant, featuring a minimalist vector illustration of a professional figure against a muted beige background, styled in a flat modern skeuomorphic aesthetic with strict adherence to a physical ledger visual identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAaAcVyRK_j8WlzW6AGLtRQSGP_LJQ1ZDiMBks7FGc2KUA-H8drqhUJXyqTgHtV6hQxLKcPR_jQj1JhlID5PjXTKTuMbY1AfjG1vQCrqdgMAhbz5kAqdapW76GarF-GWU1gcorq51Lgbi1XlpdAFfzkrc7vcAjqRz3-fplJAAOc8EFlnUmzkdAdHxUDcOim8vHqdHB4ot3GkSS5HfFziKaUFDElzdGbRuQEXwYBLqAADk8hjh4jhuEloZs4v5QcvkNyOn9fVIetWw"/>
+</div>
+</div>
+</nav>
+<!-- SideNavBar (Semantic Shell) -->
+<aside class="bg-[#1B1811] text-[#F3EEE2] w-[240px] h-screen fixed left-0 top-0 flex flex-col z-50">
+<div class="p-6 border-b border-[#F3EEE2]/15 flex flex-col gap-2">
+<div class="w-10 h-10 bg-[#F3EEE2] hairline-border flex items-center justify-center mb-2 rounded">
+<img alt="DecisionForge Logo" class="w-8 h-8" data-alt="A high-contrast logo for DecisionForge, designed as a minimalist seal or stamp using sharp geometric lines and dense black ink on a warm beige paper background, evoking trust and immutability." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2M5-thnuQvaX6UTvVjF8Y-kDdi5UHvxVKEkRTSBHiXhsDXQQ2wrEMFxaSvF8HzyAehwjjLpU1Ot6Byu086F6DoUAfp2LGi98e4Dgl5gioo46d_FfwIP1y0KeF9TVpyshkXzZnw_FwKunKCw5n-FRuwopEbLbua3WOqdQdX-B_rWRsmYbi7sGewXlGv_yqnvcQqvXunaTQ5JFmFfMCU1dEdaluJ3ldfYN9sHPzAL6vGkFfXezIVYy6MorIjt0K2cduauATBZfnTA"/>
+</div>
+<h1 class="font-headline-md text-headline-md font-bold text-[#F3EEE2]">DecisionForge</h1>
+<p class="font-data-mono text-data-mono text-[#F3EEE2]/70">Chartered Accountant Portal</p>
+<button class="mt-4 bg-[#F3EEE2] text-[#1B1811] px-4 py-2 font-title-sm text-title-sm w-full hover:bg-[#F3EEE2]/80 transition-colors text-center rounded">New Audit Case</button>
+</div>
+<nav class="flex-1 py-4 flex flex-col gap-1">
+<a class="text-[#F3EEE2]/70 hover:bg-[#F3EEE2]/10 transition-colors flex items-center gap-3 px-6 py-3 font-title-sm text-title-sm" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span> Audit Dashboard
+            </a>
+<a class="text-[#F3EEE2]/70 hover:bg-[#F3EEE2]/10 transition-colors flex items-center gap-3 px-6 py-3 font-title-sm text-title-sm" href="#">
+<span class="material-symbols-outlined text-[20px]">account_balance_wallet</span> Client Ledgers
+            </a>
+<a class="text-[#1B1811] bg-[#F3EEE2] border-l-2 border-[#1B1811] transition-all duration-100 flex items-center gap-3 px-6 py-3 font-title-sm text-title-sm" href="#">
+<span class="material-symbols-outlined text-[20px]">fact_check</span> Compliance Check
+            </a>
+<a class="text-[#F3EEE2]/70 hover:bg-[#F3EEE2]/10 transition-colors flex items-center gap-3 px-6 py-3 font-title-sm text-title-sm" href="#">
+<span class="material-symbols-outlined text-[20px]">description</span> Tax Filings
+            </a>
+<a class="text-[#F3EEE2]/70 hover:bg-[#F3EEE2]/10 transition-colors flex items-center gap-3 px-6 py-3 font-title-sm text-title-sm" href="#">
+<span class="material-symbols-outlined text-[20px]">inventory_2</span> Document Vault
+            </a>
+<a class="text-[#F3EEE2]/70 hover:bg-[#F3EEE2]/10 transition-colors flex items-center gap-3 px-6 py-3 font-title-sm text-title-sm" href="#">
+<span class="material-symbols-outlined text-[20px]">analytics</span> Reporting
+            </a>
+</nav>
+<div class="mt-auto border-t border-[#F3EEE2]/15 py-4 flex flex-col gap-1">
+<a class="text-[#F3EEE2]/70 hover:bg-[#F3EEE2]/10 transition-colors flex items-center gap-3 px-6 py-3 font-title-sm text-title-sm" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span> Settings
+            </a>
+<a class="text-[#F3EEE2]/70 hover:bg-[#F3EEE2]/10 transition-colors flex items-center gap-3 px-6 py-3 font-title-sm text-title-sm" href="#">
+<span class="material-symbols-outlined text-[20px]">help_outline</span> Support
+            </a>
+</div>
+</aside>
+<!-- Main Canvas -->
+<main class="ml-[240px] mt-16 w-full min-h-screen bg-[#F3EEE2]">
+<!-- Header Section -->
+<header class="px-container-padding py-8 border-b border-[#1B1811]/15 bg-[#F3EEE2]">
+<div class="max-w-container-max mx-auto">
+<div class="flex items-center gap-2 text-[#1B1811]/80 font-data-mono text-data-mono mb-4">
+<span>Client: <span class="font-title-sm text-[#1B1811]">Acme Corp Ltd.</span></span>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+<span>FY 2023-24</span>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+<span>INV-2023-11-048</span>
+</div>
+<div class="flex justify-between items-end">
+<div>
+<h2 class="font-display-lg text-display-lg text-[#1B1811] mb-2">Invoice Discrepancy Report</h2>
+<p class="font-data-mono-lg text-data-mono-lg text-[#1B1811]/70">Generated: 2024-05-12 14:32:00 UTC</p>
+</div>
+<div class="flex gap-6 items-center">
+<div class="flex items-center gap-4 border border-[#1B1811]/30 rounded p-2 px-4 overflow-visible">
+<span class="text-[#1B1811]/70 font-title-sm text-title-sm uppercase tracking-wider">Risk Score</span>
+<div class="risk-gauge">
+                                    92
+                                </div>
+</div>
+<button class="bg-transparent text-[#1B1811] border border-[#1B1811] px-6 py-3 font-title-sm text-title-sm hover:bg-[#1B1811]/5 transition-colors flex items-center gap-2 rounded overflow-visible">Export PDF</button>
+</div>
+</div>
+</div>
+</header>
+<!-- Conflict Arena (The Ledger) -->
+<section class="px-container-padding py-12 w-full">
+<div class="w-full relative bg-[#F3EEE2] text-[#1B1811]">
+<!-- The Stamp - Updated to 20% opacity and diagonal -->
+<div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-none mix-blend-multiply flex justify-center w-full px-8">
+<div class="audit-stamp text-[64px] whitespace-nowrap">
+                        MISMATCH DETECTED
+                    </div>
+</div>
+<div class="flex items-stretch w-full">
+<!-- Column 1: Purchase Register -->
+<div class="w-1/2 bg-[#F3EEE2] hairline-border flex flex-col relative z-0">
+<div class="p-8 hairline-border-b">
+<h3 class="font-headline-md text-headline-md text-[#1B1811]">Purchase Register</h3>
+<p class="font-data-mono text-data-mono text-[#1B1811]/70 mt-1">Source: Tally ERP 9 Extractor</p>
+</div>
+<div class="p-8 flex-1 flex flex-col gap-6 font-data-mono-lg text-data-mono-lg">
+<div>
+<div class="text-[#1B1811]/60 text-data-mono mb-1 uppercase tracking-widest font-title-sm">Vendor</div>
+<div class="font-headline-md text-[24px] text-[#1B1811]">Stark Industries Pvt Ltd</div>
+<div class="text-[#1B1811]/80 mt-1">GSTIN: 27AADCS1234F1Z9</div>
+</div>
+<div class="grid grid-cols-2 gap-4 pt-6 hairline-border-t">
+<div>
+<div class="text-[#1B1811]/60 text-data-mono mb-1 uppercase tracking-widest font-title-sm">Invoice No.</div>
+<div class="text-[#1B1811] font-bold">SI-23-4592</div>
+</div>
+<div>
+<div class="text-[#1B1811]/60 text-data-mono mb-1 uppercase tracking-widest font-title-sm">Date</div>
+<div class="text-[#1B1811]">2023-11-15</div>
+</div>
+</div>
+<div class="pt-6 hairline-border-t">
+<div class="flex justify-between py-2">
+<span class="text-[#1B1811]/80 font-title-sm">Taxable Value</span>
+<span class="text-[#1B1811] font-data-mono-lg text-right">₹ 4.50 Lakh</span>
+</div>
+<div class="flex justify-between py-2">
+<span class="text-[#1B1811]/80 font-title-sm">CGST (9%)</span>
+<span class="text-[#1B1811] font-data-mono-lg text-right">₹ 0.40 Lakh</span>
+</div>
+<div class="flex justify-between py-2">
+<span class="text-[#1B1811]/80 font-title-sm">SGST (9%)</span>
+<span class="text-[#1B1811] font-data-mono-lg text-right">₹ 0.40 Lakh</span>
+</div>
+<div class="flex justify-between py-4 mt-4 hairline-border-t bg-[rgba(27,24,17,0.05)] px-4 -mx-4 font-bold">
+<span class="text-[#1B1811] font-title-sm text-[18px]">Total Invoice Value</span>
+<span class="text-[#1B1811] font-data-mono-lg text-[18px] text-right">₹ 5.31 Lakh</span>
+</div>
+</div>
+</div>
+</div>
+<!-- The Divider -->
+<div class="absolute left-1/2 top-0 bottom-0 -translate-x-1/2 flex justify-center w-px pointer-events-none z-20">
+<div class="perforated-divider h-full w-[2px]"></div>
+</div>
+<!-- Column 2: GSTR-2B -->
+<div class="w-1/2 bg-[#F3EEE2] hairline-border flex flex-col ml-[-1px] relative z-0">
+<div class="p-8 hairline-border-b bg-[rgba(166,58,46,0.05)]">
+<h3 class="font-headline-md text-headline-md text-[#a63a2e]">GSTR-2B Portal Data</h3>
+<p class="font-data-mono text-data-mono text-[#a63a2e]/70 mt-1">Source: GSTN API Sync</p>
+</div>
+<div class="p-8 flex-1 flex flex-col gap-6 font-data-mono-lg text-data-mono-lg">
+<div>
+<div class="text-[#1B1811]/60 text-data-mono mb-1 uppercase tracking-widest font-title-sm">Supplier</div>
+<div class="font-headline-md text-[24px] text-[#1B1811]">Stark Industries Pvt Ltd</div>
+<div class="text-[#1B1811]/80 mt-1">GSTIN: 27AADCS1234F1Z9</div>
+</div>
+<div class="grid grid-cols-2 gap-4 pt-6 hairline-border-t">
+<div>
+<div class="text-[#1B1811]/60 text-data-mono mb-1 uppercase tracking-widest font-title-sm">Invoice No.</div>
+<div class="text-[#1B1811] font-bold">SI-23-4592</div>
+</div>
+<div>
+<div class="text-[#1B1811]/60 text-data-mono mb-1 uppercase tracking-widest font-title-sm">Date</div>
+<div class="text-[#1B1811]">2023-11-15</div>
+</div>
+</div>
+<div class="pt-6 hairline-border-t">
+<div class="flex justify-between py-2">
+<span class="text-[#1B1811]/80 font-title-sm">Taxable Value</span>
+<span class="text-[#1B1811] font-data-mono-lg text-right">₹ 4.50 Lakh</span>
+</div>
+<div class="flex justify-between py-2">
+<span class="text-[#a63a2e] font-bold font-title-sm">IGST (18%)</span>
+<span class="text-[#a63a2e] font-bold font-data-mono-lg text-right">₹ 0.81 Lakh</span>
+</div>
+<div class="flex justify-between py-2 opacity-50">
+<span class="text-[#1B1811]/80 font-title-sm">CGST/SGST</span>
+<span class="text-[#1B1811] font-data-mono-lg text-right">₹ 0.00 Lakh</span>
+</div>
+<div class="flex justify-between py-4 mt-4 hairline-border-t bg-[rgba(166,58,46,0.05)] px-4 -mx-4 font-bold">
+<span class="text-[#1B1811] font-title-sm text-[18px]">Total Invoice Value</span>
+<span class="text-[#1B1811] font-data-mono-lg text-[18px] text-right">₹ 5.31 Lakh</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Resolution Path -->
+<section class="px-container-padding pb-12">
+<div class="max-w-container-max mx-auto">
+<div class="bg-[#F3EEE2] text-[#1B1811] hairline-border p-10 rounded-sm">
+<h3 class="font-headline-md text-[24px] text-[#1B1811] mb-4">Conflict Analysis</h3>
+<p class="font-body-md text-[18px] leading-relaxed text-[#1B1811]/80 mb-8 max-w-4xl">
+                        The total invoice value matches (<span class="font-data-mono-lg text-[#1B1811]">₹ 5.31 Lakh</span>), however, the tax heads differ. The local purchase register records this as an intrastate transaction (CGST/SGST), while the supplier has filed it on the GST portal as an interstate transaction (IGST). 
+                    </p>
+<div class="flex flex-col gap-4 mt-8 hairline-border-t pt-8">
+<div class="text-[#1B1811]/60 font-title-sm uppercase tracking-widest text-[14px]">Resolution Actions</div>
+<div class="flex gap-4">
+<button class="bg-transparent text-[#1B1811] border border-[#1B1811] px-6 py-3 font-title-sm text-title-sm hover:bg-[#1B1811]/5 transition-colors flex items-center gap-2 rounded">
+<span class="material-symbols-outlined text-[18px]">edit_document</span> Amend Ledger Entry
+                            </button>
+<button class="bg-transparent text-[#1B1811] border border-[#1B1811] px-6 py-3 font-title-sm text-title-sm hover:bg-[#1B1811]/5 transition-colors flex items-center gap-2 rounded">
+<span class="material-symbols-outlined text-[18px]">mail</span> Flag for Vendor Follow-up
+                            </button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Footer (Semantic Shell) -->
+<footer class="bg-transparent w-full py-6 border-t border-[#1B1811]/15 flex justify-between items-center px-container-padding">
+<div class="font-data-mono text-data-mono text-[#1B1811]/50">
+                 © 2024 DecisionForge Audit Systems. Immutable Ledger Technology.
+             </div>
+<div class="flex gap-8">
+<a class="font-data-mono text-data-mono text-[#1B1811]/50 hover:text-[#1B1811] underline transition-opacity" href="#">Terms of Service</a>
+<a class="font-data-mono text-data-mono text-[#1B1811]/50 hover:text-[#1B1811] underline transition-opacity" href="#">Privacy Protocol</a>
+<a class="font-data-mono text-data-mono text-[#1B1811]/50 hover:text-[#1B1811] underline transition-opacity" href="#">Regulatory Disclosure</a>
+</div>
+</footer>
+</main>
+</body></html>

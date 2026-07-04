@@ -1,0 +1,422 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Mismatch Detection - DecisionForge</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&amp;family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&amp;family=Literata:ital,opsz,wght@0,7..72,200..900;1,7..72,200..900&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "surface-container-high": "#2a2a2b",
+                "on-primary-container": "#78849a",
+                "on-primary": "#253144",
+                "surface-container-low": "#1b1b1d",
+                "inverse-primary": "#535f74",
+                "on-secondary-fixed": "#1f1b11",
+                "on-error": "#690005",
+                "outline": "#8f9097",
+                "primary-fixed-dim": "#bbc7df",
+                "surface": "#131315",
+                "secondary-fixed-dim": "#cec6b5",
+                "tertiary-fixed": "#ffdad5",
+                "on-primary-fixed-variant": "#3c475b",
+                "on-error-container": "#ffdad6",
+                "on-surface-variant": "#c5c6cd",
+                "tertiary": "#ffb4a9",
+                "inverse-on-surface": "#303032",
+                "secondary": "#cec6b5",
+                "inverse-surface": "#e4e2e3",
+                "on-secondary": "#343025",
+                "surface-bright": "#39393b",
+                "primary": "#bbc7df",
+                "on-tertiary-container": "#dd5849",
+                "surface-tint": "#bbc7df",
+                "on-tertiary-fixed": "#410001",
+                "outline-variant": "#44474c",
+                "surface-container-highest": "#353536",
+                "surface-container": "#1f1f21",
+                "on-tertiary-fixed-variant": "#8a1c14",
+                "surface-dim": "#131315",
+                "secondary-container": "#4e493c",
+                "on-secondary-fixed-variant": "#4b463a",
+                "primary-container": "#0f1b2d",
+                "on-tertiary": "#690002",
+                "on-primary-fixed": "#101c2e",
+                "tertiary-fixed-dim": "#ffb4a9",
+                "secondary-fixed": "#eae2d1",
+                "surface-variant": "#353536",
+                "on-background": "#e4e2e3",
+                "surface-container-lowest": "#0e0e10",
+                "on-surface": "#e4e2e3",
+                "background": "#F3EEE2",
+                "tertiary-container": "#400001",
+                "error-container": "#93000a",
+                "error": "#ffb4ab",
+                "primary-fixed": "#d7e3fc",
+                "on-secondary-container": "#c0b8a8",
+                "paper": "#F3EEE2",
+                "brass": "#b59b54",
+                "sage": "#7A8B7B",
+                "vermillion": "#C25C4D",
+                "ink": "#1B1811"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+        },
+        "spacing": {
+                "table-row-height": "32px",
+                "unit": "4px",
+                "sidebar-width": "240px",
+                "container-padding": "24px",
+                "gutter": "16px"
+        },
+        "fontFamily": {
+                "body-md": [
+                        "IBMPlexSans"
+                ],
+                "headline-md": [
+                        "Literata"
+                ],
+                "title-sm": [
+                        "IBMPlexSans"
+                ],
+                "data-mono": [
+                        "IBMPlexMono"
+                ],
+                "body-sm": [
+                        "IBMPlexSans"
+                ],
+                "data-mono-lg": [
+                        "IBMPlexMono"
+                ],
+                "display-lg": [
+                        "Literata"
+                ]
+        },
+        "fontSize": {
+                "body-md": [
+                        "14px",
+                        {
+                                "lineHeight": "1.6",
+                                "fontWeight": "400"
+                        }
+                ],
+                "headline-md": [
+                        "24px",
+                        {
+                                "lineHeight": "1.3",
+                                "fontWeight": "600"
+                        }
+                ],
+                "title-sm": [
+                        "16px",
+                        {
+                                "lineHeight": "1.5",
+                                "letterSpacing": "0.05em",
+                                "fontWeight": "600"
+                        }
+                ],
+                "data-mono": [
+                        "13px",
+                        {
+                                "lineHeight": "1.2",
+                                "fontWeight": "500"
+                        }
+                ],
+                "body-sm": [
+                        "12px",
+                        {
+                                "lineHeight": "1.4",
+                                "fontWeight": "400"
+                        }
+                ],
+                "data-mono-lg": [
+                        "15px",
+                        {
+                                "lineHeight": "1.2",
+                                "fontWeight": "600"
+                        }
+                ],
+                "display-lg": [
+                        "32px",
+                        {
+                                "lineHeight": "1.2",
+                                "letterSpacing": "-0.02em",
+                                "fontWeight": "700"
+                        }
+                ]
+        }
+},
+    },
+  }
+</script>
+<style>
+        /* Shared Styles: Physical Accountability */
+        body {
+            background-color: theme('colors.paper');
+            color: theme('colors.ink');
+        }
+        
+        .border-ink-hairline {
+            border-color: theme('colors.ink');
+            opacity: 0.15;
+        }
+
+        .border-ink-focus {
+            border-color: theme('colors.primary');
+        }
+
+        /* Material Symbols Fill override if needed */
+        .material-symbols-outlined[data-weight="fill"] {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex bg-paper font-body-md text-ink">
+<!-- SideNavBar -->
+<nav class="w-sidebar-width h-screen fixed left-0 top-0 flex flex-col border-r border-ink/15 bg-ink text-paper z-50">
+<div class="p-6">
+<h1 class="font-headline-md text-headline-md font-bold text-paper">DecisionForge</h1>
+<p class="font-body-md text-body-md text-paper/70 mt-1 text-sm">Chartered Accountant Portal</p>
+</div>
+<div class="px-4 mb-6">
+<button class="w-full py-2 px-4 rounded-none bg-brass text-paper font-title-sm text-title-sm flex items-center justify-center gap-2 hover:bg-brass/90 transition-colors"><span class="material-symbols-outlined text-sm">add</span>New Audit Case</button>
+</div>
+<div class="flex-1 overflow-y-auto">
+<ul class="flex flex-col">
+<li class="">
+<a class="flex items-center px-6 py-3 font-body-md text-body-md text-paper/70 hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined mr-3">dashboard</span>
+                        Audit Dashboard
+                    </a>
+</li>
+<li class="">
+<a class="flex items-center px-6 py-3 font-body-md text-body-md text-paper/70 hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined mr-3">account_balance_wallet</span>
+                        Client Ledgers
+                    </a>
+</li>
+<li class="">
+<a class="flex items-center px-6 py-3 font-body-md text-body-md text-paper border-l-4 border-brass bg-white/5 transition-all duration-100 font-semibold" href="#">
+<span class="material-symbols-outlined mr-3 text-brass" data-weight="fill">fact_check</span>
+                        Mismatch Queue
+                    </a>
+</li>
+<li class="">
+<a class="flex items-center px-6 py-3 font-body-md text-body-md text-paper/70 hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined mr-3">description</span>
+                        Tax Filings
+                    </a>
+</li>
+<li class="">
+<a class="flex items-center px-6 py-3 font-body-md text-body-md text-paper/70 hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined mr-3">inventory_2</span>
+                        Document Vault
+                    </a>
+</li>
+<li class="">
+<a class="flex items-center px-6 py-3 font-body-md text-body-md text-paper/70 hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined mr-3">analytics</span>
+                        Reporting
+                    </a>
+</li>
+</ul>
+</div>
+<div class="mt-auto border-t border-paper/15 py-4">
+<ul class="flex flex-col">
+<li class="">
+<a class="flex items-center px-6 py-2 font-body-md text-body-md text-paper/70 hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined mr-3">settings</span>
+                        Settings
+                    </a>
+</li>
+<li class="">
+<a class="flex items-center px-6 py-2 font-body-md text-body-md text-paper/70 hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined mr-3">help_outline</span>
+                        Support
+                    </a>
+</li>
+</ul>
+</div>
+</nav>
+<!-- Main Content Wrapper -->
+<div class="flex-1 ml-[240px] flex flex-col min-h-screen">
+<!-- TopNavBar -->
+<header class="flex justify-between items-center h-16 px-container-padding border-b border-ink/15 bg-paper text-ink docked full-width top-0 z-40">
+<div class="flex-1 flex items-center">
+<div class="relative w-96">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-ink/50">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-transparent border border-ink/20 rounded-none font-body-md text-body-md text-ink focus:outline-none focus:border-brass focus:ring-0 transition-colors placeholder:text-ink/50" placeholder="Search Ledgers..." type="text">
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4">
+<button class="text-ink/70 hover:text-brass transition-colors">
+<span class="material-symbols-outlined">history</span>
+</button>
+<button class="text-ink/70 hover:text-brass transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-vermillion rounded-full"></span>
+</button>
+</div>
+<div class="h-6 w-px bg-ink/30"></div>
+<div class="flex items-center gap-3">
+<button class="px-4 py-1.5 bg-brass text-paper border border-brass rounded-none font-title-sm text-title-sm hover:bg-brass/90 transition-colors">Run Audit</button>
+<div class="w-8 h-8 rounded-none bg-ink text-paper border border-ink/20 overflow-hidden flex items-center justify-center"><img alt="CA User Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuADkiEr_qpLpRsgf25Oh0Yf3moLuv6hAA51U0WBbCAY6gNbJOWwC2sK7nQgNpLd4mGLDiOY_ihsbSK7gc5zNer93w-mWK9wuhQHpDUqszJOt8EVlfeJVtl2r5R7KfEB7ZK0pHUaSKnsX_JVaVLiCEXl58Ux3P81xHnuQFCsFqp_H3rpBnFwMlc2mPVtlr-ijB2k7h3cFl-XsNg-TownYb2XJA_-XPJ4T6Gkj-NiaNHXs1Th4ri3k0sqWlbgwmeyWEAte0SbCvoF-Q"></div>
+</div>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="flex-1 p-container-padding bg-paper">
+<!-- Page Header & Filters -->
+<div class="mb-8">
+<div class="flex justify-between items-end mb-6">
+<div>
+<h2 class="font-display-lg text-display-lg text-ink mb-2">Mismatch Detection</h2>
+<p class="font-body-md text-body-md text-ink/70">Review queue for ITC discrepancies and compliance red flags.</p>
+</div>
+<div class="text-right">
+<p class="font-data-mono text-data-mono text-ink/70 mb-1">Queue Status</p>
+<p class="font-headline-md text-headline-md text-ink">14 Pending</p>
+</div>
+</div>
+<!-- Filter Bar -->
+<div class="flex gap-4 p-4 bg-paper border border-ink/15 items-center">
+<div class="flex-1">
+<label class="block font-title-sm text-title-sm text-ink/70 mb-1 text-xs uppercase tracking-wider">Client Entity</label>
+<select class="w-full bg-transparent border-b border-ink/20 border-t-0 border-l-0 border-r-0 rounded-none font-body-md text-body-md text-ink focus:ring-0 focus:border-brass py-1 px-0">
+<option>Acme Corp (GSTIN: 27AADCB2230M1Z2)</option>
+<option>Nexus Logistics</option>
+</select>
+</div>
+<div class="flex-1">
+<label class="block font-title-sm text-title-sm text-ink/70 mb-1 text-xs uppercase tracking-wider">Severity Filter</label>
+<select class="w-full bg-transparent border-b border-ink/20 border-t-0 border-l-0 border-r-0 rounded-none font-body-md text-body-md text-ink focus:ring-0 focus:border-brass py-1 px-0">
+<option>All Tiers</option>
+<option>High Risk (Vermillion)</option>
+<option>Moderate</option>
+</select>
+</div>
+<div class="flex-1">
+<label class="block font-title-sm text-title-sm text-ink/70 mb-1 text-xs uppercase tracking-wider">Date Range (F.Y.)</label>
+<div class="flex items-center gap-2 border-b border-ink/20 focus-within:border-brass">
+<input class="w-full bg-transparent border-0 rounded-none font-body-md text-body-md text-ink focus:ring-0 py-1 px-0" type="text" value="Q3 2023">
+<span class="material-symbols-outlined text-ink/50">calendar_month</span>
+</div>
+</div>
+<div class="pl-4">
+<button class="px-4 py-2 border border-ink/20 text-ink font-title-sm text-title-sm hover:border-brass hover:text-brass transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">filter_list</span>
+                            Apply
+                        </button>
+</div>
+</div>
+</div>
+<!-- Review Queue (Data Table) -->
+<div class="w-full bg-paper p-4">
+<!-- Header Row -->
+<div class="grid grid-cols-12 gap-4 px-4 py-2 bg-ink/5 border-b border-ink/20 font-title-sm text-body-sm text-ink/70 uppercase tracking-wider font-semibold"><div class="col-span-2">Reference / Date</div>
+<div class="col-span-3">Vendor / Source</div>
+<div class="col-span-2">Mismatch Type</div>
+<div class="col-span-2 text-right">ITC Value (₹)</div>
+<div class="col-span-3 text-right">Actions</div></div>
+<div class="flex flex-col"><!-- Row 1 -->
+<div class="grid grid-cols-12 gap-4 px-4 py-3 border-b border-ink/10 items-center hover:bg-black/5 transition-colors group">
+<div class="col-span-2 flex flex-col">
+<div class="font-data-mono text-data-mono text-ink">REF-8842-A</div>
+<div class="font-data-mono text-[11px] text-ink/60">12 Oct 2023</div>
+</div>
+<div class="col-span-3 flex flex-col">
+<div class="font-body-md text-body-md text-ink font-medium">Stark Industries Pvt Ltd</div>
+<div class="font-data-mono text-[11px] text-ink/60">GSTR-2B vs PR</div>
+</div>
+<div class="col-span-2 flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-vermillion"></div>
+<span class="font-data-mono text-[11px] text-vermillion uppercase tracking-wide">Rate Mismatch</span>
+</div>
+<div class="col-span-2 text-right flex flex-col items-end">
+<div class="font-data-mono-lg text-data-mono-lg text-ink">₹1.45L</div>
+<div class="font-data-mono text-[11px] text-vermillion">Critical</div>
+</div>
+<div class="col-span-3 flex justify-end gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
+<button class="px-3 py-1 border border-ink/20 text-ink font-title-sm text-xs hover:border-brass hover:text-brass transition-colors">Accept</button>
+<button class="px-3 py-1 border border-ink/20 text-ink font-title-sm text-xs hover:border-vermillion hover:text-vermillion transition-colors">Flag</button>
+<button class="px-3 py-1 bg-brass text-paper font-title-sm text-xs hover:bg-brass/90 transition-colors">Escalate</button>
+</div>
+</div>
+<!-- Row 2 -->
+<div class="grid grid-cols-12 gap-4 px-4 py-3 border-b border-ink/10 items-center hover:bg-black/5 transition-colors group">
+<div class="col-span-2 flex flex-col">
+<div class="font-data-mono text-data-mono text-ink">REF-9102-B</div>
+<div class="font-data-mono text-[11px] text-ink/60">14 Oct 2023</div>
+</div>
+<div class="col-span-3 flex flex-col">
+<div class="font-body-md text-body-md text-ink font-medium">Globex Corporation</div>
+<div class="font-data-mono text-[11px] text-ink/60">Invoice Missing in 2B</div>
+</div>
+<div class="col-span-2 flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-brass"></div>
+<span class="font-data-mono text-[11px] text-brass uppercase tracking-wide">Missing Entry</span>
+</div>
+<div class="col-span-2 text-right flex flex-col items-end">
+<div class="font-data-mono-lg text-data-mono-lg text-ink">₹0.85L</div>
+<div class="font-data-mono text-[11px] text-brass">Warning</div>
+</div>
+<div class="col-span-3 flex justify-end gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
+<button class="px-3 py-1 border border-ink/20 text-ink font-title-sm text-xs hover:border-brass hover:text-brass transition-colors">Accept</button>
+<button class="px-3 py-1 border border-ink/20 text-ink font-title-sm text-xs hover:border-vermillion hover:text-vermillion transition-colors">Flag</button>
+<button class="px-3 py-1 bg-brass text-paper font-title-sm text-xs hover:bg-brass/90 transition-colors">Escalate</button>
+</div>
+</div>
+<!-- Row 3 -->
+<div class="grid grid-cols-12 gap-4 px-4 py-3 border-b border-ink/10 items-center hover:bg-black/5 transition-colors group">
+<div class="col-span-2 flex flex-col">
+<div class="font-data-mono text-data-mono text-ink">REF-9155-C</div>
+<div class="font-data-mono text-[11px] text-ink/60">15 Oct 2023</div>
+</div>
+<div class="col-span-3 flex flex-col">
+<div class="font-body-md text-body-md text-ink font-medium">Initech Supplies</div>
+<div class="font-data-mono text-[11px] text-ink/60">GSTR-2B vs PR</div>
+</div>
+<div class="col-span-2 flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-vermillion"></div>
+<span class="font-data-mono text-[11px] text-vermillion uppercase tracking-wide">Value Mismatch</span>
+</div>
+<div class="col-span-2 text-right flex flex-col items-end">
+<div class="font-data-mono-lg text-data-mono-lg text-ink">₹4.12L</div>
+<div class="font-data-mono text-[11px] text-vermillion">Var: 45,000</div>
+</div>
+<div class="col-span-3 flex justify-end gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
+<button class="px-3 py-1 border border-ink/20 text-ink font-title-sm text-xs hover:border-brass hover:text-brass transition-colors">Accept</button>
+<button class="px-3 py-1 border border-ink/20 text-ink font-title-sm text-xs hover:border-vermillion hover:text-vermillion transition-colors">Flag</button>
+<button class="px-3 py-1 bg-brass text-paper font-title-sm text-xs hover:bg-brass/90 transition-colors">Escalate</button>
+</div>
+</div></div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="flex justify-between items-center px-container-padding py-4 bg-transparent border-t border-ink/10 w-full z-40 mt-auto">
+<div>
+<p class="font-data-mono text-[11px] text-ink/50">© 2024 DecisionForge Audit Systems. Immutable Ledger Technology.</p>
+</div>
+<div class="flex gap-6">
+<a class="font-data-mono text-[11px] text-ink/50 hover:text-ink underline transition-opacity" href="#">Terms of Service</a>
+<a class="font-data-mono text-[11px] text-ink/50 hover:text-ink underline transition-opacity" href="#">Privacy Protocol</a>
+<a class="font-data-mono text-[11px] text-ink/50 hover:text-ink underline transition-opacity" href="#">Regulatory Disclosure</a>
+</div>
+</footer>
+</div>
+
+
+</body></html>
