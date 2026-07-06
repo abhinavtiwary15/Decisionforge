@@ -104,6 +104,40 @@ function formatBqRow(row) {
   return formatted;
 }
 
+function normalizeClientRow(row) {
+  if (!row) return row;
+  const formatted = formatBqRow(row);
+  const mapped = { ...formatted };
+
+  if (mapped.total_invoices !== undefined) {
+    mapped.total_invoice_count = mapped.total_invoices;
+  }
+  if (mapped.clean_matches !== undefined) {
+    mapped.clean_match_count = mapped.clean_matches;
+  }
+  if (mapped.timing_differences !== undefined) {
+    mapped.timing_difference_count = mapped.timing_differences;
+  }
+  if (mapped.missing_in_2b !== undefined) {
+    mapped.missing_in_2b_count = mapped.missing_in_2b;
+  }
+  if (mapped.amount_mismatches !== undefined) {
+    mapped.amount_mismatch_count = mapped.amount_mismatches;
+  }
+  if (mapped.missing_in_register !== undefined) {
+    mapped.missing_in_register_count = mapped.missing_in_register;
+  }
+  if (mapped.duplicate_claims !== undefined) {
+    mapped.duplicate_claim_count = mapped.duplicate_claims;
+  }
+  if (mapped.invalid_gstins !== undefined) {
+    mapped.invalid_gstin_count = mapped.invalid_gstins;
+  }
+
+  return mapped;
+}
+
+
 // ──────────────────────────────────────────────────────────────────────────────
 // MOCK DATA (fallback when BQ is unavailable / dev offline)
 // ──────────────────────────────────────────────────────────────────────────────
@@ -151,7 +185,7 @@ app.get('/api/clients', async (req, res) => {
       const [rows] = await bigquery.query({
         query: `SELECT * FROM \`decisionforge-501312.gst_notices.reconciliation_summary_by_client\``,
       });
-      return res.json(rows.map(formatBqRow));
+      return res.json(rows.map(normalizeClientRow));
     } catch (err) {
       console.warn('[/api/clients] BQ failed, using mock:', err.message);
     }
