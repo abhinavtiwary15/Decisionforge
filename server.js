@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
-const { BigQuery } = require('@google-cloud/bigquery');
 const { spawnSync } = require('child_process');
 const multer = require('multer');
 const crypto = require('crypto');
@@ -213,21 +212,23 @@ app.use((req, res, next) => {
 // ──────────────────────────────────────────────────────────────────────────────
 // BIGQUERY CLIENT
 // ──────────────────────────────────────────────────────────────────────────────
-let bigquery = null;
-if (process.env.BIGQUERY_CREDENTIALS) {
-  try {
-    const credentials = JSON.parse(process.env.BIGQUERY_CREDENTIALS);
-    bigquery = new BigQuery({ projectId: 'decisionforge-501312', credentials });
-    console.log('Using BigQuery credentials from BIGQUERY_CREDENTIALS env var.');
-  } catch (e) {
-    console.error('Failed to parse BIGQUERY_CREDENTIALS env var:', e.message);
+let bigqueryClientInstance = null;
+function getBigQueryClient() {
+  if (bigqueryClientInstance) return bigqueryClientInstance;
+  if (!process.env.BIGQUERY_CREDENTIALS && process.env.VERCEL) {
+    return null;
   }
-} else if (!process.env.VERCEL) {
   try {
-    bigquery = new BigQuery({ projectId: 'decisionforge-501312' });
-    console.log('BigQuery client initialized via local ADC.');
+    const { BigQuery } = require('@google-cloud/bigquery');
+    const options = { projectId: 'decisionforge-501312' };
+    if (process.env.BIGQUERY_CREDENTIALS) {
+      options.credentials = JSON.parse(process.env.BIGQUERY_CREDENTIALS);
+    }
+    bigqueryClientInstance = new BigQuery(options);
+    return bigqueryClientInstance;
   } catch (err) {
-    console.warn('Failed to initialize local BigQuery client:', err.message);
+    console.warn('BigQuery init failed:', err.message);
+    return null;
   }
 }
 
@@ -339,9 +340,10 @@ function getRegisteredClientsLocal() {
 
 async function getRegisteredClients() {
   let bqRows = [];
-  if (bigquery) {
+  const bq = getBigQueryClient();
+  if (bq) {
     try {
-      const [rows] = await bigquery.query({
+      const [rows] = await bq.query({
         query: `SELECT client_gstin, client_name, createdAt FROM \`decisionforge-501312.gst_notices.client_registry\``
       });
       bqRows = rows || [];
@@ -364,9 +366,10 @@ async function getRegisteredClients() {
 
 async function saveRegisteredClient(newEntry) {
   let bqErr = null;
-  if (bigquery) {
+  const bq = getBigQueryClient();
+  if (bq) {
     try {
-      const bqPromise = bigquery.query({
+      const bqPromise = bq.query({
         query: `INSERT INTO \`decisionforge-501312.gst_notices.client_registry\` (client_gstin, client_name, createdAt) VALUES (@client_gstin, @client_name, @createdAt)`,
         params: {
           client_gstin: newEntry.client_gstin,
@@ -405,9 +408,10 @@ async function saveRegisteredClient(newEntry) {
 // 1. GET /api/clients  (TTL: 120s — stable summary stats)
 app.get('/api/clients', async (req, res) => {
   let bqClients = [];
-  if (bigquery) {
+  const bq = getBigQueryClient();
+  if (bq) {
     try {
-      const [rows] = await bigquery.query({
+      const [rows] = await bq.query({
         query: `SELECT * FROM \`decisionforge-501312.gst_notices.reconciliation_summary_by_client\``,
       });
       bqClients = rows.map(normalizeClientRow);
@@ -523,7 +527,8 @@ app.get('/api/reconciliation', async (req, res) => {
   const { client_gstin, risk_label, mismatch_type, limit = 25, offset = 0, search, exclude_clean } = req.query;
   const isFilteredOrSearched = !!(client_gstin || risk_label || mismatch_type || search || exclude_clean === 'true');
 
-  if (bigquery) {
+  const bq = getBigQueryClient();
+  if (bq) {
     try {
       const whereClauses = [];
       const params = {};
@@ -544,8 +549,8 @@ app.get('/api/reconciliation', async (req, res) => {
       params.offset = parseInt(offset, 10);
 
       // LIMIT and OFFSET are in the SQL — BigQuery only returns the requested page.
-      const [rows]      = await bigquery.query({ query: `SELECT * FROM \`decisionforge-501312.gst_notices.reconciliation_risk_ranked\` ${whereSql} LIMIT @limit OFFSET @offset`, params });
-      const [countRows] = await bigquery.query({ query: `SELECT COUNT(*) AS total FROM \`decisionforge-501312.gst_notices.reconciliation_risk_ranked\` ${whereSql}`, params });
+      const [rows]      = await bq.query({ query: `SELECT * FROM \`decisionforge-501312.gst_notices.reconciliation_risk_ranked\` ${whereSql} LIMIT @limit OFFSET @offset`, params });
+      const [countRows] = await bq.query({ query: `SELECT COUNT(*) AS total FROM \`decisionforge-501312.gst_notices.reconciliation_risk_ranked\` ${whereSql}`, params });
       const total = countRows[0] ? parseInt(countRows[0].total, 10) : rows.length;
 
       const enriched = await enrichWithExplanations(rows.map(formatBqRow));
@@ -693,9 +698,10 @@ app.get('/api/communication/draft', async (req, res) => {
 
 // 4. GET /api/data-quality  (TTL: 120s)
 app.get('/api/data-quality', async (req, res) => {
-  if (bigquery) {
+  const bq = getBigQueryClient();
+  if (bq) {
     try {
-      const [rows] = await bigquery.query({ query: `SELECT * FROM \`decisionforge-501312.gst_notices.data_quality_flags\`` });
+      const [rows] = await bq.query({ query: `SELECT * FROM \`decisionforge-501312.gst_notices.data_quality_flags\`` });
       const dbFlags = rows.map(formatBqRow);
       // Return live rows only — never merge with mock.
       // If BQ returns 0 rows that is authoritative (no bad GSTINs found).
@@ -751,9 +757,10 @@ app.get('/api/cache-stats', (req, res) => {
 
 // 7. Analytics: ITC at risk ranked by client_gstin
 app.get('/api/analytics/risk-by-client', async (req, res) => {
-  if (bigquery) {
+  const bq = getBigQueryClient();
+  if (bq) {
     try {
-      const [rows] = await bigquery.query({
+      const [rows] = await bq.query({
         query: `
           SELECT
             client_gstin,
@@ -794,9 +801,10 @@ app.get('/api/analytics/risk-by-client', async (req, res) => {
 
 // 8. Analytics: mismatch count + ITC at risk by filing_period (time trend)
 app.get('/api/analytics/trend', async (req, res) => {
-  if (bigquery) {
+  const bq = getBigQueryClient();
+  if (bq) {
     try {
-      const [rows] = await bigquery.query({
+      const [rows] = await bq.query({
         query: `
           SELECT
             COALESCE(filing_period, 'No GSTR-2B Filing (Vendor Non-Compliance)') AS filing_period,
