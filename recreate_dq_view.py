@@ -17,7 +17,7 @@ DQ_VIEW_SQL = """
 CREATE OR REPLACE VIEW `decisionforge-501312.gst_notices.data_quality_flags` AS
 SELECT
   invoice_id,
-  pr_client_gstin                              AS client_gstin,
+  client_gstin,
   vendor_gstin,
   invoice_number,
   CASE

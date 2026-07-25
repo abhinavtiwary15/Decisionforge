@@ -93,9 +93,9 @@ FIG_H  = 5       # inches  ->  5 x 150 DPI = 750 px tall
 # was generated with slightly different timings on a different run.
 # ---------------------------------------------------------------------------
 CANONICAL = {
-    500:   {"pandas": 0.0452, "cudf": 1.5688, "speedup": 0.03},
-    5000:  {"pandas": 0.1079, "cudf": 0.0363, "speedup": 2.97},
-    50000: {"pandas": 1.0020, "cudf": 0.1033, "speedup": 9.70},
+    500:   {"pandas": 0.0181, "cudf": 0.0239, "speedup": 0.76},
+    5000:  {"pandas": 0.0553, "cudf": 0.0202, "speedup": 2.74},
+    50000: {"pandas": 0.8534, "cudf": 0.1226, "speedup": 6.96},
 }
 
 

@@ -85,6 +85,97 @@
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
+   TABLE HEADER ROW
+   Uses explicit rgba() instead of the two-class bg-ink bg-opacity-5 /
+   text-ink text-opacity-70 pattern, which de-syncs in Tailwind v4 when
+   the CSS variable chain for custom color tokens (--color-ink) breaks,
+   rendering both background AND text as solid #1B1811 (invisible text).
+
+   Apply to every <tr> that is a table header — replaces the pattern:
+     bg-ink bg-opacity-5 text-ink text-opacity-70 border-b border-ink border-opacity-15
+   with a single class:
+     tbl-header
+─────────────────────────────────────────────────────────────────────────── */
+.tbl-header {
+  background-color: rgba(27, 24, 17, 0.05) !important;
+  color: rgba(27, 24, 17, 0.70) !important;
+  border-bottom: 1px solid rgba(27, 24, 17, 0.15) !important;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   INK-MUTED TEXT UTILITIES
+   Safe alternatives to "text-ink text-opacity-XX" which de-syncs in
+   Tailwind v4 for custom color tokens. Use these classes instead of
+   pairing text-ink with text-opacity-*.
+
+   Values used across the codebase (grep-verified):
+     35, 40, 45, 50, 55, 60, 65, 70, 75
+─────────────────────────────────────────────────────────────────────────── */
+.text-ink-35  { color: rgba(27, 24, 17, 0.35) !important; }
+.text-ink-40  { color: rgba(27, 24, 17, 0.40) !important; }
+.text-ink-45  { color: rgba(27, 24, 17, 0.45) !important; }
+.text-ink-50  { color: rgba(27, 24, 17, 0.50) !important; }
+.text-ink-55  { color: rgba(27, 24, 17, 0.55) !important; }
+.text-ink-60  { color: rgba(27, 24, 17, 0.60) !important; }
+.text-ink-65  { color: rgba(27, 24, 17, 0.65) !important; }
+.text-ink-70  { color: rgba(27, 24, 17, 0.70) !important; }
+.text-ink-75  { color: rgba(27, 24, 17, 0.75) !important; }
+.text-ink-80  { color: rgba(27, 24, 17, 0.80) !important; }
+
+/* ──────────────────────────────────────────────────────────────────────────
+   INK-TINT BACKGROUND UTILITIES
+   Safe alternatives to "bg-ink bg-opacity-X". These cover elements that
+   use a tinted ink background — skeleton shimmers, badge chips, pill tags,
+   toggle bars — where the bg-opacity de-sync renders them solid black.
+─────────────────────────────────────────────────────────────────────────── */
+/* 5% ink tint — used on table headers, badge chips, skeleton shimmer rows */
+.bg-ink-5  { background-color: rgba(27, 24, 17, 0.05) !important; }
+/* 10% ink tint — used on skeleton shimmer placeholder bars */
+.bg-ink-10 { background-color: rgba(27, 24, 17, 0.10) !important; }
+
+/* ──────────────────────────────────────────────────────────────────────────
+   VERMILLION-TINT BACKGROUND UTILITIES
+   Safe alternatives to "bg-vermillion bg-opacity-X" which breaks the same
+   way as bg-ink bg-opacity-X in Tailwind v4 with custom color tokens.
+   Vermillion = #A63A2E
+   Used for: error highlights, mismatch markers, risk badges, warning panels.
+─────────────────────────────────────────────────────────────────────────── */
+.bg-vermillion-5  { background-color: rgba(166, 58, 46, 0.05)  !important; }
+.bg-vermillion-10 { background-color: rgba(166, 58, 46, 0.10)  !important; }
+.bg-vermillion-15 { background-color: rgba(166, 58, 46, 0.15)  !important; }
+.bg-vermillion-20 { background-color: rgba(166, 58, 46, 0.20)  !important; }
+
+/* ──────────────────────────────────────────────────────────────────────────
+   BRASS-TINT BACKGROUND UTILITIES
+   Safe alternatives to "bg-brass bg-opacity-X".
+   Brass = #A9781E
+   Used for: positive-match badges, benchmark panels, KPI highlights.
+─────────────────────────────────────────────────────────────────────────── */
+.bg-brass-5  { background-color: rgba(169, 120, 30, 0.05)  !important; }
+.bg-brass-15 { background-color: rgba(169, 120, 30, 0.15)  !important; }
+
+/* ──────────────────────────────────────────────────────────────────────────
+   INK-TINT BADGE / CHIP  (bg + text together, border included)
+   For inline pill/tag elements that pair both bg-ink and text-ink opacity,
+   replacing the compound class chain that breaks together:
+     text-ink text-opacity-40 bg-ink bg-opacity-5 border border-ink border-opacity-10
+─────────────────────────────────────────────────────────────────────────── */
+.ink-chip {
+  color: rgba(27, 24, 17, 0.45) !important;
+  background-color: rgba(27, 24, 17, 0.05) !important;
+  border: 1px solid rgba(27, 24, 17, 0.10) !important;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   INK-TINT TOGGLE BAR  (tab switcher bg)
+   Replaces: bg-ink bg-opacity-5 border border-ink border-opacity-10
+─────────────────────────────────────────────────────────────────────────── */
+.ink-toggle-bar {
+  background-color: rgba(27, 24, 17, 0.05) !important;
+  border: 1px solid rgba(27, 24, 17, 0.10) !important;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
    CUSTOM SCROLLBAR
 ─────────────────────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar {
@@ -105,3 +196,53 @@
 body {
   background-color: #FAF8F5;
 }
+
+/* Typography Hierarchy Scale System */
+.page-title {
+  font-family: 'Fraunces', serif !important;
+  font-size: 1.875rem !important; /* 30px */
+  line-height: 2.25rem !important;
+  font-weight: 700 !important;
+  color: #1B1811 !important;
+}
+
+.section-header {
+  font-family: 'Fraunces', serif !important;
+  font-size: 1.125rem !important; /* 18px */
+  line-height: 1.75rem !important;
+  font-weight: 700 !important;
+  color: #1B1811 !important;
+}
+
+.label-caps {
+  font-family: 'IBM Plex Sans', sans-serif !important;
+  font-size: 10px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  font-weight: 600 !important;
+  color: rgba(27, 24, 17, 0.65) !important;
+}
+
+.body-secondary {
+  font-family: 'IBM Plex Sans', sans-serif !important;
+  font-size: 11px !important;
+  color: rgba(27, 24, 17, 0.55) !important;
+}
+
+/* Shared form input style for Settings panel and other forms */
+.input-field {
+  width: 100%;
+  background-color: #F3EEE2;
+  border: 1px solid rgba(27, 24, 17, 0.35);
+  padding: 6px 10px;
+  font-size: 11px;
+  font-family: 'IBM Plex Sans', sans-serif;
+  color: #1B1811;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.input-field:focus {
+  border-color: #A9781E;
+}
+

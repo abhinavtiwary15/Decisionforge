@@ -83,8 +83,8 @@ export default function VendorManagement() {
       <div className="space-y-6 font-sans">
         <div className="flex justify-between items-end border-b border-ink border-opacity-10 pb-4">
           <div>
-            <h1 className="font-fraunces text-2xl font-bold text-ink opacity-25">Vendor Compliance Registry</h1>
-            <p className="font-sans text-xs text-ink text-opacity-45 mt-1">Supplier compliance scoring based on GST portal filing promptness...</p>
+            <h1 className="page-title opacity-25">Vendor Compliance Registry</h1>
+            <p className="body-secondary mt-1">Supplier compliance scoring based on GST portal filing promptness...</p>
           </div>
         </div>
         <SkeletonStatStrip cards={3} />
@@ -99,8 +99,8 @@ export default function VendorManagement() {
     <div className="space-y-6 font-sans">
       <div className="flex justify-between items-end border-b border-ink border-opacity-10 pb-4">
         <div>
-          <h1 className="font-fraunces text-2xl font-bold text-ink">Vendor Compliance Registry</h1>
-          <p className="font-sans text-xs text-ink text-opacity-60 mt-1">
+          <h1 className="page-title">Vendor Compliance Registry</h1>
+          <p className="body-secondary mt-1">
             Supplier compliance scoring based on GST portal filing promptness and reconciliation metrics.
           </p>
         </div>
@@ -115,21 +115,21 @@ export default function VendorManagement() {
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-paper p-4 border border-ink border-opacity-15">
-          <p className="text-[10px] uppercase tracking-wider font-semibold text-ink text-opacity-65">Tracked Suppliers</p>
+          <p className="label-caps">Tracked Suppliers</p>
           <p className="font-mono text-xl font-bold text-brass mt-1 tabular-nums">{totalVendors}</p>
-          <p className="text-[10px] text-ink text-opacity-55 mt-1">Actively filing GSTR-1 returns</p>
+          <p className="text-[10px] text-ink-55 mt-1">Actively filing GSTR-1 returns</p>
         </div>
         <div className="bg-paper p-4 border border-ink border-opacity-15 border-l-2 border-l-vermillion">
-          <p className="text-[10px] uppercase tracking-wider font-semibold text-vermillion">Intervention Required</p>
+          <p className="label-caps text-vermillion!">Intervention Required</p>
           <p className="font-mono text-xl font-bold text-vermillion mt-1 tabular-nums">{criticalVendors}</p>
-          <p className="text-[10px] text-ink text-opacity-55 mt-1">Suppliers with compliance &lt;80%</p>
+          <p className="text-[10px] text-ink-55 mt-1">Suppliers with compliance &lt;80%</p>
         </div>
         <div className="bg-paper p-4 border border-ink border-opacity-15">
-          <p className="text-[10px] uppercase tracking-wider font-semibold text-ink text-opacity-65">Aggregate Withheld Credit</p>
+          <p className="label-caps">Aggregate Withheld Credit</p>
           <p className="font-mono text-xl font-bold text-brass mt-1 tabular-nums">
             ₹{totalITCRisk.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
           </p>
-          <p className="text-[10px] text-ink text-opacity-55 mt-1">ITC at risk due to supplier default</p>
+          <p className="text-[10px] text-ink-55 mt-1">ITC at risk due to supplier default</p>
         </div>
       </div>
 
@@ -137,13 +137,13 @@ export default function VendorManagement() {
       <div className="bg-paper p-4 border border-ink border-opacity-15 flex flex-col md:flex-row gap-4 items-center justify-between">
         <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
           <div className="flex flex-col gap-1 w-full md:w-64">
-            <span className="text-[10px] uppercase font-semibold text-ink text-opacity-65">Search Supplier</span>
+            <span className="label-caps">Search Supplier</span>
             <input type="text" placeholder="Search by name or GSTIN..." value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="bg-paper border border-ink border-opacity-35 px-3 py-1 text-xs text-ink focus:outline-none focus:border-brass placeholder-ink placeholder-opacity-40"/>
           </div>
           <div className="flex flex-col gap-1 w-full md:w-48">
-            <span className="text-[10px] uppercase font-semibold text-ink text-opacity-65">Compliance Filter</span>
+            <span className="label-caps">Compliance Filter</span>
             <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}
               className="bg-paper border border-ink border-opacity-35 px-3 py-1 text-xs text-ink focus:outline-none focus:border-brass">
               <option value="">All Tiers</option>
@@ -163,7 +163,7 @@ export default function VendorManagement() {
       <div className="bg-paper border border-ink border-opacity-15 overflow-x-auto">
         <table className="w-full text-left font-sans text-xs">
           <thead>
-            <tr className="bg-ink bg-opacity-5 text-ink text-opacity-70 font-semibold border-b border-ink border-opacity-15">
+            <tr className="tbl-header font-semibold">
               <th className="p-3">Supplier Name</th>
               <th className="p-3">GSTIN</th>
               <th className="p-3 text-right">Invoices</th>
@@ -178,7 +178,7 @@ export default function VendorManagement() {
           <tbody className="divide-y divide-ink divide-opacity-10 font-mono text-[11px] tabular-nums">
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan="9" className="p-8 text-center text-ink text-opacity-50 font-sans italic">
+                <td colSpan="9" className="p-8 text-center text-ink-50 font-sans italic">
                   No suppliers found matching the criteria.
                 </td>
               </tr>
@@ -197,10 +197,10 @@ export default function VendorManagement() {
                   <td className="p-3 text-right font-sans">
                     <span className={`inline-block px-1.5 py-0.5 border text-[10px] font-bold ${
                       v.tier === 'EXCELLENT'
-                        ? 'border-brass text-brass bg-brass bg-opacity-5'
+                        ? 'border-brass text-brass bg-brass-5'
                         : v.tier === 'ATTENTION'
-                          ? 'border-ink border-opacity-35 text-ink text-opacity-65 bg-ink bg-opacity-5'
-                          : 'border-vermillion text-vermillion bg-vermillion bg-opacity-5'
+                          ? 'border-ink border-opacity-35 text-ink-65 bg-ink-5'
+                          : 'border-vermillion text-vermillion bg-vermillion-5'
                     }`}>
                       {v.tier === 'EXCELLENT' ? 'EXCELLENT' : v.tier === 'ATTENTION' ? 'NEEDS ATTENTION' : 'INTERVENTION REQUIRED'}
                     </span>

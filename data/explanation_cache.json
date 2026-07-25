@@ -1,0 +1,15 @@
+{
+  "test-pr-1": "The ITC claimed in the purchase register for Reliance Industries Ltd. is missing from GSTR-2B, resulting in a critical risk.",
+  "test-pr-3": "Infosys Limited's invoice INF-8871 shows an AMOUNT_MISMATCH, indicating the Purchase Register ITC Claimed Amount exceeds the GSTR-2B ITC Available Amount, resulting in a HIGH risk label.",
+  "test-pr-6": "The mismatch is a DUPLICATE_CLAIM for HDFC Bank Corp, identified by invoice number HDF-7761, where the Purchase Register ITC Claimed Amount matches the GSTR-2B ITC Available Amount, resulting in a MEDIUM risk label.",
+  "test-pr-4": "The GST reconciliation mismatch for Adani Enterprises, invoice ADA-091A, is a low-risk timing difference where the ITC claimed in the purchase register matches the ITC available in GSTR-2B.",
+  "test-gstr-1": "The invoice from Tata Consultancy Services, TCS-99812, is a MISSING_IN_REGISTER mismatch type with a LOW risk label, indicating it was available in GSTR-2B but not recorded in the purchase register.",
+  "1ef190e2-644e-4761-9d0d-c9ed0e9ebf26": "The GST reconciliation shows a CLEAN_MATCH for an unknown vendor with no ITC at risk, indicating the purchase register and GSTR-2B ITC available amounts are identical.",
+  "c1215079-e50a-402f-bcf6-fd62da366145": "The GST reconciliation shows a CLEAN_MATCH for Unknown Vendor's invoice INV-40572, with no ITC at risk and a NONE risk label.",
+  "e9248c37-098f-4206-9d86-c38d72e5d757": "The Unknown Vendor's invoice INV/26-27/42794 shows a MISSING_IN_2B mismatch type, indicating that the Purchase Register ITC Claimed Amount is at critical risk because the GSTR-2B ITC Available Amount is N/A.",
+  "d7ca9e95-188e-47a7-9561-1646949ef172": "The Unknown Vendor's invoice TX-93857 shows a MISSING_IN_2B mismatch type, indicating the full Purchase Register ITC Claimed Amount is at critical risk because it is not available in GSTR-2B.",
+  "58609e09-ff1f-4c1b-9058-858d6e5e0964": "The GST reconciliation shows a clean match between the purchase register and GSTR-2B ITC available amounts, indicating no risk.",
+  "9630c674-f590-45bc-a35d-8745274266ff": "The GST reconciliation shows a clean match between the purchase register ITC claimed amount and the GSTR-2B ITC available amount, with no ITC at risk.",
+  "8020f3ad-7c5b-4255-bbb9-e627e8136090": "The GST reconciliation shows a CLEAN_MATCH for Unknown Vendor's invoice RE-08656, with no ITC at risk and a NONE risk label.",
+  "pr-1": "The ITC claimed in the purchase register for Reliance Industries Ltd. is missing from GSTR-2B, resulting in a critical risk."
+}

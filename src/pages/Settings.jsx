@@ -45,8 +45,8 @@ export default function Settings() {
       {/* Header */}
       <div className="flex justify-between items-end border-b border-ink border-opacity-10 pb-4">
         <div>
-          <h1 className="font-fraunces text-2xl font-bold text-ink">Administrative Settings</h1>
-          <p className="font-sans text-xs text-ink text-opacity-60 mt-1">
+          <h1 className="page-title">Administrative Settings</h1>
+          <p className="body-secondary mt-1">
             Configure audit rules, risk scoring thresholds, API integrations, and CA registration profiles.
           </p>
         </div>
@@ -57,12 +57,12 @@ export default function Settings() {
         {/* Card 1: Profile Settings */}
         <div className="bg-paper p-6 border border-ink border-opacity-15 flex flex-col justify-between">
           <div className="space-y-4">
-            <h2 className="font-fraunces text-base font-bold text-ink border-b border-ink border-opacity-10 pb-2">
+            <h2 className="section-header border-b border-ink border-opacity-10 pb-2">
               Auditor Profile
             </h2>
             <div className="grid grid-cols-1 gap-4 text-xs text-ink">
               <div className="flex flex-col gap-1">
-                <label className="font-semibold">Chartered Accountant Name</label>
+                <label className="label-caps mb-1">Chartered Accountant Name</label>
                 <input 
                   type="text" 
                   value={profile.name}
@@ -71,7 +71,7 @@ export default function Settings() {
                 />
               </div>
               <div className="flex flex-col gap-1">
-                <label className="font-semibold">Firm / Organization</label>
+                <label className="label-caps mb-1">Firm / Organization</label>
                 <input 
                   type="text" 
                   value={profile.firm}
@@ -81,7 +81,7 @@ export default function Settings() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1">
-                  <label className="font-semibold">ICA Registration License</label>
+                  <label className="label-caps mb-1">ICA Registration License</label>
                   <input 
                     type="text" 
                     value={profile.license}
@@ -90,7 +90,7 @@ export default function Settings() {
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="font-semibold">Email Address</label>
+                  <label className="label-caps mb-1">Email Address</label>
                   <input 
                     type="email" 
                     value={profile.email}
@@ -115,15 +115,15 @@ export default function Settings() {
         {/* Card 2: Audit Rules & Thresholds */}
         <div className="bg-paper p-6 border border-ink border-opacity-15 flex flex-col justify-between">
           <div className="space-y-4">
-            <h2 className="font-fraunces text-base font-bold text-ink border-b border-ink border-opacity-10 pb-2">
+            <h2 className="section-header border-b border-ink border-opacity-10 pb-2">
               Audit Rules &amp; Thresholds
             </h2>
             <div className="grid grid-cols-1 gap-4 text-xs text-ink">
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1">
-                  <label className="font-semibold">Critical Risk Threshold (ITC)</label>
+                  <label className="label-caps mb-1">Critical Risk Threshold (ITC)</label>
                   <div className="relative">
-                    <span className="absolute left-2.5 top-1.5 font-mono text-ink text-opacity-50">₹</span>
+                    <span className="absolute left-2.5 top-1.5 font-mono text-ink-50">₹</span>
                     <input 
                       type="number" 
                       value={thresholds.criticalRisk}
@@ -133,9 +133,9 @@ export default function Settings() {
                   </div>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="font-semibold">High Risk Threshold (Discrepancy)</label>
+                  <label className="label-caps mb-1">High Risk Threshold (Discrepancy)</label>
                   <div className="relative">
-                    <span className="absolute left-2.5 top-1.5 font-mono text-ink text-opacity-50">₹</span>
+                    <span className="absolute left-2.5 top-1.5 font-mono text-ink-50">₹</span>
                     <input 
                       type="number" 
                       value={thresholds.highRisk}
@@ -148,9 +148,9 @@ export default function Settings() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1">
-                  <label className="font-semibold">Rounding Tolerance Limit</label>
+                  <label className="label-caps mb-1">Rounding Tolerance Limit</label>
                   <div className="relative">
-                    <span className="absolute left-2.5 top-1.5 font-mono text-ink text-opacity-50">₹</span>
+                    <span className="absolute left-2.5 top-1.5 font-mono text-ink-50">₹</span>
                     <input 
                       type="number" 
                       value={thresholds.toleranceAmt}
@@ -160,12 +160,12 @@ export default function Settings() {
                   </div>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="font-semibold">Timing Diff Period Distance</label>
+                  <label className="label-caps mb-1">Timing Diff Period Distance</label>
                   <input 
                     type="text" 
                     value={`${thresholds.timingDiffMonth} Calendar Month`}
                     disabled
-                    className="bg-paper border border-ink border-opacity-20 px-3 py-1.5 text-xs text-ink text-opacity-50 font-mono"
+                    className="bg-paper border border-ink border-opacity-20 px-3 py-1.5 text-xs text-ink-50 font-mono"
                   />
                 </div>
               </div>
@@ -185,12 +185,12 @@ export default function Settings() {
         {/* Card 3: API & Database Integrations */}
         <div className="bg-paper p-6 border border-ink border-opacity-15 flex flex-col justify-between md:col-span-2">
           <div className="space-y-4">
-            <h2 className="font-fraunces text-base font-bold text-ink border-b border-ink border-opacity-10 pb-2">
+            <h2 className="section-header border-b border-ink border-opacity-10 pb-2">
               API &amp; Database Integrations
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs text-ink">
               <div className="flex flex-col gap-1">
-                <label className="font-semibold">BigQuery billing Project ID</label>
+                <label className="label-caps mb-1">BigQuery billing Project ID</label>
                 <input 
                   type="text" 
                   value={integrations.projectId}
@@ -199,7 +199,7 @@ export default function Settings() {
                 />
               </div>
               <div className="flex flex-col gap-1">
-                <label className="font-semibold">BigQuery Dataset ID</label>
+                <label className="label-caps mb-1">BigQuery Dataset ID</label>
                 <input 
                   type="text" 
                   value={integrations.datasetId}
@@ -208,19 +208,19 @@ export default function Settings() {
                 />
               </div>
               <div className="flex flex-col gap-1">
-                <label className="font-semibold">Local Fallback Strategy</label>
+                <label className="label-caps mb-1">Local Fallback Strategy</label>
                 <input 
                   type="text" 
                   value={integrations.localFallback}
                   disabled
-                  className="bg-paper border border-ink border-opacity-20 px-3 py-1.5 text-xs text-ink text-opacity-50 font-mono"
+                  className="bg-paper border border-ink border-opacity-20 px-3 py-1.5 text-xs text-ink-50 font-mono"
                 />
               </div>
             </div>
           </div>
 
           <div className="flex justify-between items-center mt-6 pt-4 border-t border-ink border-opacity-10">
-            <p className="text-[10px] text-ink text-opacity-50 italic">
+            <p className="text-[10px] text-ink-50 italic">
               Credential discovery runs via standard Google Application Default Credentials.
             </p>
             <button 

@@ -41,7 +41,7 @@ export function AppDataProvider({ children }) {
         api.getReconciliation({ risk_label: 'CRITICAL', limit: 5, offset: 0 }),
         api.getReconciliation({ limit: 100, offset: 0 }),
         api.getReconciliation({ limit: 1000, offset: 0 }),
-        api.getReconciliation({ limit: 20, offset: 0 })
+        api.getReconciliation({ limit: 20, offset: 0, exclude_clean: true })
       ]);
 
       if (clientsRes.status === 'fulfilled' && !clientsRes.value.error) setClients(clientsRes.value.data);
@@ -86,6 +86,7 @@ export function AppDataProvider({ children }) {
   return (
     <AppDataContext.Provider value={{
       clients,
+      setClients,
       benchmark,
       dataQuality,
       defaultRecon,

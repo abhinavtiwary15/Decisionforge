@@ -75,8 +75,8 @@ export default function ReconciliationLedger({ setCurrentPage, setSelectedInvoic
     <div className="space-y-6 font-sans">
       <div className="flex justify-between items-end border-b border-ink border-opacity-10 pb-4">
         <div>
-          <h1 className="font-fraunces text-2xl font-bold text-ink">GST Reconciliation Ledger</h1>
-          <p className="font-sans text-xs text-ink text-opacity-60 mt-1">
+          <h1 className="page-title">GST Reconciliation Ledger</h1>
+          <p className="body-secondary mt-1">
             Complete flat table listing of reconciled invoices, matches, and risk assessments.
           </p>
         </div>
@@ -91,12 +91,12 @@ export default function ReconciliationLedger({ setCurrentPage, setSelectedInvoic
       {/* Filters Strip */}
       <div className="bg-paper p-4 border border-ink border-opacity-15 grid grid-cols-1 md:grid-cols-5 gap-4">
         <div className="flex flex-col gap-1">
-          <label className="text-[10px] uppercase font-semibold text-ink text-opacity-65">Search Invoice/Vendor</label>
+          <label className="label-caps">Search Invoice/Vendor</label>
           <input type="text" placeholder="Search..." value={searchQuery} onChange={handleSearchChange}
             className="bg-paper border border-ink border-opacity-35 px-3 py-1 text-xs text-ink focus:outline-none focus:border-brass placeholder-ink placeholder-opacity-40"/>
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-[10px] uppercase font-semibold text-ink text-opacity-65">Client Profile</label>
+          <label className="label-caps">Client Profile</label>
           <select value={selectedClient} onChange={handleClientChange}
             className="bg-paper border border-ink border-opacity-35 px-3 py-1 text-xs text-ink focus:outline-none focus:border-brass">
             <option value="">All Clients</option>
@@ -106,7 +106,7 @@ export default function ReconciliationLedger({ setCurrentPage, setSelectedInvoic
           </select>
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-[10px] uppercase font-semibold text-ink text-opacity-65">Risk Priority</label>
+          <label className="label-caps">Risk Priority</label>
           <select value={selectedRisk} onChange={handleRiskChange}
             className="bg-paper border border-ink border-opacity-35 px-3 py-1 text-xs text-ink focus:outline-none focus:border-brass">
             <option value="">All Risks</option>
@@ -118,7 +118,7 @@ export default function ReconciliationLedger({ setCurrentPage, setSelectedInvoic
           </select>
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-[10px] uppercase font-semibold text-ink text-opacity-65">Mismatch Type</label>
+          <label className="label-caps">Mismatch Type</label>
           <select value={selectedMismatch} onChange={handleMismatchChange}
             className="bg-paper border border-ink border-opacity-35 px-3 py-1 text-xs text-ink focus:outline-none focus:border-brass">
             <option value="">All Categories</option>
@@ -142,7 +142,7 @@ export default function ReconciliationLedger({ setCurrentPage, setSelectedInvoic
       <div className="bg-paper border border-ink border-opacity-15 overflow-x-auto">
         <table className="w-full text-left font-sans text-xs">
           <thead>
-            <tr className="bg-ink bg-opacity-5 text-ink text-opacity-70 font-semibold border-b border-ink border-opacity-15">
+            <tr className="tbl-header font-semibold">
               <th className="p-3">Invoice No.</th>
               <th className="p-3">Vendor Name</th>
               <th className="p-3">Vendor GSTIN</th>
@@ -159,20 +159,20 @@ export default function ReconciliationLedger({ setCurrentPage, setSelectedInvoic
             {loading ? (
               Array.from({ length: limit }).map((_, idx) => (
                 <tr key={idx} className="animate-pulse border-b border-ink border-opacity-5">
-                  <td className="p-3"><div className="h-3 bg-ink bg-opacity-10 w-24"></div></td>
-                  <td className="p-3"><div className="h-3 bg-ink bg-opacity-10 w-32"></div></td>
-                  <td className="p-3"><div className="h-3 bg-ink bg-opacity-10 w-28"></div></td>
-                  <td className="p-3"><div className="h-3 bg-ink bg-opacity-10 w-20"></div></td>
-                  <td className="p-3 text-right"><div className="h-3 bg-ink bg-opacity-10 w-16 ml-auto"></div></td>
-                  <td className="p-3 text-right"><div className="h-3 bg-ink bg-opacity-10 w-16 ml-auto"></div></td>
-                  <td className="p-3 text-right"><div className="h-3 bg-ink bg-opacity-10 w-16 ml-auto"></div></td>
-                  <td className="p-3"><div className="h-3 bg-ink bg-opacity-10 w-24"></div></td>
-                  <td className="p-3"><div className="h-3 bg-ink bg-opacity-10 w-16"></div></td>
-                  <td className="p-3 text-right"><div className="h-3 bg-ink bg-opacity-10 w-12 ml-auto"></div></td>
+                  <td className="p-3"><div className="h-3 bg-ink-10 w-24"></div></td>
+                  <td className="p-3"><div className="h-3 bg-ink-10 w-32"></div></td>
+                  <td className="p-3"><div className="h-3 bg-ink-10 w-28"></div></td>
+                  <td className="p-3"><div className="h-3 bg-ink-10 w-20"></div></td>
+                  <td className="p-3 text-right"><div className="h-3 bg-ink-10 w-16 ml-auto"></div></td>
+                  <td className="p-3 text-right"><div className="h-3 bg-ink-10 w-16 ml-auto"></div></td>
+                  <td className="p-3 text-right"><div className="h-3 bg-ink-10 w-16 ml-auto"></div></td>
+                  <td className="p-3"><div className="h-3 bg-ink-10 w-24"></div></td>
+                  <td className="p-3"><div className="h-3 bg-ink-10 w-16"></div></td>
+                  <td className="p-3 text-right"><div className="h-3 bg-ink-10 w-12 ml-auto"></div></td>
                 </tr>
               ))
             ) : (!Array.isArray(data) || data.length === 0) ? (
-              <tr><td colSpan="10" className="p-8 text-center text-ink text-opacity-50 font-sans italic">No matching reconciliation records found.</td></tr>
+              <tr><td colSpan="10" className="p-8 text-center text-ink-50 font-sans italic">No matching reconciliation records found.</td></tr>
             ) : (
               (Array.isArray(data) ? data : []).map((item) => {
                 const invoiceNum   = safeStr(item.invoice_number);
@@ -194,16 +194,16 @@ export default function ReconciliationLedger({ setCurrentPage, setSelectedInvoic
                     <td className="p-3 text-right">₹{prTax.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
                     <td className="p-3 text-right">₹{bTax.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
                     <td className="p-3 text-right text-vermillion font-bold">₹{itcRisk.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
-                    <td className="p-3 font-sans text-[10px] uppercase font-bold text-ink text-opacity-70">
+                    <td className="p-3 font-sans text-[10px] uppercase font-bold text-ink-70">
                       {mismatchType.replace(/_/g, ' ')}
                     </td>
                     <td className="p-3 font-sans text-[10px] font-bold">
                       <span className={`px-1.5 py-0.5 border ${
                         riskLabel === 'CRITICAL' || riskLabel === 'HIGH'
-                          ? 'border-vermillion text-vermillion bg-vermillion bg-opacity-5'
+                          ? 'border-vermillion text-vermillion bg-vermillion-5'
                           : riskLabel === 'MEDIUM'
-                            ? 'border-brass text-brass bg-brass bg-opacity-5'
-                            : 'border-ink border-opacity-35 text-ink text-opacity-55'
+                            ? 'border-brass text-brass bg-brass-5'
+                            : 'border-ink border-opacity-35 text-ink-55'
                       }`}>
                         {riskLabel}
                       </span>
@@ -226,7 +226,7 @@ export default function ReconciliationLedger({ setCurrentPage, setSelectedInvoic
       </div>
 
       {/* Pagination Footer */}
-      <div className="flex justify-between items-center text-xs text-ink text-opacity-70 font-mono">
+      <div className="flex justify-between items-center text-xs text-ink-70 font-mono">
         <div>
           Showing <span className="font-bold">{total > 0 ? offset + 1 : 0}</span> to{' '}
           <span className="font-bold">{Math.min(offset + limit, total)}</span> of{' '}

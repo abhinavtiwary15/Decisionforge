@@ -48,6 +48,33 @@ async function apiFetch(url) {
   }
 }
 
+async function apiPost(url, body, isFormData = false) {
+  try {
+    const options = {
+      method: 'POST',
+      body: isFormData ? body : JSON.stringify(body)
+    };
+    if (!isFormData) {
+      options.headers = { 'Content-Type': 'application/json' };
+    }
+    const res = await fetch(url, options);
+    if (!res.ok) {
+      const text = await res.text().catch(() => res.statusText);
+      let errMsg = text;
+      try {
+        const jsonErr = JSON.parse(text);
+        if (jsonErr.error) errMsg = jsonErr.error;
+      } catch (e) {}
+      return { data: null, error: errMsg };
+    }
+    const data = await res.json();
+    return { data, error: null };
+  } catch (err) {
+    console.error('[apiPost error]', url, err);
+    return { data: null, error: err.message || 'Network error' };
+  }
+}
+
 export const api = {
   getClients: () => apiFetch('/api/clients'),
 
@@ -57,6 +84,7 @@ export const api = {
     if (params.risk_label)   q.set('risk_label',   params.risk_label);
     if (params.mismatch_type) q.set('mismatch_type', params.mismatch_type);
     if (params.search)       q.set('search',        params.search);
+    if (params.exclude_clean) q.set('exclude_clean', String(params.exclude_clean));
     q.set('limit',  String(params.limit  ?? 25));
     q.set('offset', String(params.offset ?? 0));
     return apiFetch(`/api/reconciliation?${q.toString()}`);
@@ -68,4 +96,23 @@ export const api = {
   getDataQuality: () => apiFetch('/api/data-quality'),
 
   getBenchmark: () => apiFetch('/api/benchmark'),
+
+  getCommunicationDraft: (invoice_number, vendor_gstin, draft_type, lang = 'en') =>
+    apiFetch(`/api/communication/draft?invoice_number=${encodeURIComponent(invoice_number)}&vendor_gstin=${encodeURIComponent(vendor_gstin)}&draft_type=${encodeURIComponent(draft_type)}&lang=${encodeURIComponent(lang)}`),
+
+  uploadPRFile: (formData, clientGstin) => 
+    apiPost(`/api/purchase-register/upload?client_gstin=${encodeURIComponent(clientGstin)}`, formData, true),
+
+  savePRMapping: (client_gstin, mapping, columns_fingerprint) =>
+    apiPost('/api/purchase-register/save-mapping', { client_gstin, mapping, columns_fingerprint }),
+
+  ingestPR: (file_id, mapping) =>
+    apiPost('/api/purchase-register/ingest', { file_id, mapping }),
+
+  addClient: (client_gstin, client_name) =>
+    apiPost('/api/clients', { client_gstin, client_name }),
+
+  getAnalyticsRiskByClient: () => apiFetch('/api/analytics/risk-by-client'),
+
+  getAnalyticsTrend: () => apiFetch('/api/analytics/trend'),
 };

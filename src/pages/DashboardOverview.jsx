@@ -70,19 +70,24 @@ export default function DashboardOverview({ setCurrentPage, setSelectedInvoice }
     <div className="space-y-6 font-sans">
       {/* Non-fatal API error banner */}
       {errors.length > 0 && (
-        <div className="bg-paper border border-vermillion border-opacity-40 p-3">
-          <p className="text-xs font-sans font-semibold text-vermillion mb-1">Some data could not be loaded — showing available data below.</p>
-          {errors.map((e, i) => (
-            <p key={i} className="text-[11px] font-mono text-vermillion">{e}</p>
-          ))}
+        <div className="bg-paper border border-vermillion border-opacity-40 p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div>
+            <p className="text-xs font-sans font-semibold text-vermillion mb-1">Backend service error (500) — could not fetch live data.</p>
+            {errors.map((e, i) => (
+              <p key={i} className="text-[11px] font-mono text-vermillion">{e}</p>
+            ))}
+          </div>
+          <button type="button" onClick={() => window.location.reload()} className="bg-brass text-paper px-3 py-1 text-xs font-semibold self-start sm:self-auto hover:opacity-95">
+            Retry Connection
+          </button>
         </div>
       )}
 
       {/* Header */}
       <div className="flex justify-between items-end border-b border-ink border-opacity-10 pb-4">
         <div>
-          <h1 className="font-fraunces text-2xl font-bold text-ink">GST Reconciliation Console</h1>
-          <p className="font-sans text-xs text-ink text-opacity-60 mt-1">
+          <h1 className="page-title">GST Reconciliation Console</h1>
+          <p className="body-secondary mt-1">
             Real-time reconciliation of Purchase Register against GSTR-2B filings.
           </p>
         </div>
@@ -101,28 +106,28 @@ export default function DashboardOverview({ setCurrentPage, setSelectedInvoice }
       {/* Stats Strip */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-paper p-4 border border-ink border-opacity-15">
-          <p className="text-[10px] uppercase tracking-wider font-semibold text-ink text-opacity-65">Total ITC at Risk</p>
+          <p className="label-caps">Total ITC at Risk</p>
           <p className="font-mono text-xl font-bold text-brass mt-1 tabular-nums">
             ₹{totalITCRisk.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
           </p>
-          <p className="text-[10px] text-ink text-opacity-55 mt-1">Across {clients.length} active client profiles</p>
+          <p className="text-[10px] text-ink-55 mt-1">Across {clients.length} active client profiles</p>
         </div>
         <div className="bg-paper p-4 border border-ink border-opacity-15">
-          <p className="text-[10px] uppercase tracking-wider font-semibold text-ink text-opacity-65">Clean Match Rate</p>
+          <p className="label-caps">Clean Match Rate</p>
           <p className="font-mono text-xl font-bold text-brass mt-1 tabular-nums">{cleanMatchRate.toFixed(1)}%</p>
-          <p className="text-[10px] text-ink text-opacity-55 mt-1">Target benchmark: &gt;95.0%</p>
+          <p className="text-[10px] text-ink-55 mt-1">Target benchmark: &gt;95.0%</p>
         </div>
         <div className="bg-paper p-4 border border-ink border-opacity-15">
-          <p className="text-[10px] uppercase tracking-wider font-semibold text-ink text-opacity-65">Identified Mismatches</p>
+          <p className="label-caps">Identified Mismatches</p>
           <p className="font-mono text-xl font-bold text-vermillion mt-1 tabular-nums">
             {mismatchCount.toLocaleString('en-IN')}
           </p>
-          <p className="text-[10px] text-ink text-opacity-55 mt-1">Requires vendor contact</p>
+          <p className="text-[10px] text-ink-55 mt-1">Requires vendor contact</p>
         </div>
         <div className="bg-paper p-4 border border-ink border-opacity-15 border-l-2 border-l-vermillion">
-          <p className="text-[10px] uppercase tracking-wider font-semibold text-vermillion">Needs Attention</p>
+          <p className="label-caps text-vermillion!">Needs Attention</p>
           <p className="font-mono text-xl font-bold text-vermillion mt-1 tabular-nums">{dataQualityFlags.length} Flags</p>
-          <p className="text-[10px] text-ink text-opacity-55 mt-1">Invalid GSTIN structural failures</p>
+          <p className="text-[10px] text-ink-55 mt-1">Invalid GSTIN structural failures</p>
         </div>
       </div>
 
@@ -137,8 +142,8 @@ export default function DashboardOverview({ setCurrentPage, setSelectedInvoice }
           <div className="flex items-center gap-3">
             <span className="material-symbols-outlined text-vermillion">report_problem</span>
             <div>
-              <h2 className="font-fraunces text-sm font-bold text-ink">Data Quality Flags: Action Required</h2>
-              <p className="text-[11px] text-ink text-opacity-60 font-sans">
+              <h2 className="section-header">Data Quality Flags: Action Required</h2>
+              <p className="text-[11px] text-ink-60 font-sans">
                 {dataQualityFlags.length} record{dataQualityFlags.length !== 1 ? 's' : ''} failed GSTIN
                 structural validation and must be corrected before financial auditing.
               </p>
@@ -158,11 +163,11 @@ export default function DashboardOverview({ setCurrentPage, setSelectedInvoice }
         {dqExpanded && (
           <div className="border-t border-ink border-opacity-10 overflow-x-auto">
             {dataQualityFlags.length === 0 ? (
-              <p className="p-4 text-xs text-ink text-opacity-55 italic font-sans">No data quality flags found.</p>
+              <p className="p-4 text-xs text-ink-55 italic font-sans">No data quality flags found.</p>
             ) : (
               <table className="w-full text-left font-sans text-xs">
                 <thead>
-                  <tr className="bg-ink bg-opacity-5 text-ink text-opacity-70 font-semibold border-b border-ink border-opacity-15">
+                  <tr className="tbl-header font-semibold">
                     <th className="p-3">Invoice No.</th>
                     <th className="p-3">Client GSTIN</th>
                     <th className="p-3">Invalid Vendor GSTIN</th>
@@ -195,10 +200,10 @@ export default function DashboardOverview({ setCurrentPage, setSelectedInvoice }
         <div className="lg:col-span-2 bg-paper p-4 border border-ink border-opacity-15 flex flex-col">
           <div className="flex justify-between items-center mb-4">
             <div>
-              <h2 className="font-fraunces text-base font-bold text-ink">Mismatch Trends</h2>
-              <p className="text-xs text-ink text-opacity-55">Timeline of matching vs. discrepant invoices</p>
+              <h2 className="section-header">Mismatch Trends</h2>
+              <p className="body-secondary mt-1">Timeline of matching vs. discrepant invoices</p>
             </div>
-            <div className="flex gap-4 text-xs font-sans text-ink text-opacity-75">
+            <div className="flex gap-4 text-xs font-sans text-ink-75">
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 bg-brass"></span>Matches</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 bg-vermillion"></span>Mismatches</span>
             </div>
@@ -232,16 +237,16 @@ export default function DashboardOverview({ setCurrentPage, setSelectedInvoice }
           <div>
             <div className="flex justify-between items-center mb-4">
               <div>
-                <h2 className="font-fraunces text-base font-bold text-ink">Recent Criticals</h2>
-                <p className="text-xs text-ink text-opacity-55">Highest value ITC exposures</p>
+                <h2 className="section-header">Recent Criticals</h2>
+                <p className="body-secondary mt-1">Highest value ITC exposures</p>
               </div>
-              <span className="bg-vermillion bg-opacity-15 text-vermillion px-2 py-0.5 font-sans font-bold text-[9px] uppercase tracking-wider">
+              <span className="bg-vermillion-15 text-vermillion px-2 py-0.5 font-sans font-bold text-[9px] uppercase tracking-wider">
                 Action Required
               </span>
             </div>
 
             {(!Array.isArray(recentMismatches) || recentMismatches.length === 0) ? (
-              <p className="text-xs text-ink text-opacity-50 italic">No critical mismatches found.</p>
+              <p className="text-xs text-ink-50 italic">No critical mismatches found.</p>
             ) : (
               <div className="space-y-3">
                 {(Array.isArray(recentMismatches) ? recentMismatches : []).slice(0, 4).map((item) => (
@@ -259,7 +264,7 @@ export default function DashboardOverview({ setCurrentPage, setSelectedInvoice }
                         ₹{safeFloat(item.itc_at_risk).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                       </span>
                     </div>
-                    <div className="flex justify-between items-center mt-1 text-[10px] text-ink text-opacity-65">
+                    <div className="flex justify-between items-center mt-1 text-[10px] text-ink-65">
                       <span className="truncate max-w-[150px] font-sans">{safeStr(item.vendor_name)}</span>
                       <span className="font-mono">{safeStr(item.pr_invoice_date) || safeStr(item.invoice_date)}</span>
                     </div>
@@ -277,11 +282,11 @@ export default function DashboardOverview({ setCurrentPage, setSelectedInvoice }
 
       {/* Client Exposure Table */}
       <div className="bg-paper p-4 border border-ink border-opacity-15">
-        <h2 className="font-fraunces text-base font-bold text-ink mb-4">Client Exposure Directory</h2>
+        <h2 className="section-header mb-4">Client Exposure Directory</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-left font-sans text-xs">
             <thead>
-              <tr className="bg-ink bg-opacity-5 text-ink text-opacity-70 font-semibold border-b border-ink border-opacity-15">
+              <tr className="tbl-header font-semibold">
                 <th className="p-3">Client GSTIN</th>
                 <th className="p-3 text-right">Total Invoices</th>
                 <th className="p-3 text-right">Matches</th>
@@ -294,7 +299,7 @@ export default function DashboardOverview({ setCurrentPage, setSelectedInvoice }
             </thead>
             <tbody className="divide-y divide-ink divide-opacity-10 font-mono text-[11px] tabular-nums">
               {(!Array.isArray(clients) || clients.length === 0) ? (
-                <tr><td colSpan="8" className="p-6 text-center text-ink text-opacity-50 italic font-sans">No client data available.</td></tr>
+                <tr><td colSpan="8" className="p-6 text-center text-ink-50 italic font-sans">No client data available.</td></tr>
               ) : (
                 (Array.isArray(clients) ? clients : [])
                   .filter(c => c && c.client_gstin !== null && c.client_gstin !== undefined)

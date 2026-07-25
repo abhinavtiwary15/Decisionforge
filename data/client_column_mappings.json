@@ -1,0 +1,33 @@
+{
+  "27AABCU9603R1ZV": {
+    "mapping": {
+      "invoice_number": "Invoice No",
+      "vendor_gstin": "Party GSTIN",
+      "vendor_name": "Party Name",
+      "invoice_date": "Date",
+      "taxable_value": "Taxable Amt",
+      "cgst": "CGST Amt",
+      "sgst": "SGST Amt",
+      "igst": "IGST Amt"
+    },
+    "columns_fingerprint": [
+      "CGST Amt",
+      "Date",
+      "IGST Amt",
+      "Invoice No",
+      "Party GSTIN",
+      "Party Name",
+      "SGST Amt",
+      "Taxable Amt",
+      "Total ITC"
+    ],
+    "saved_at": "2026-07-18T15:34:42.261Z"
+  },
+  "27AAAAA1234A1Z1": {
+    "mapping": {
+      "invoice": "Invoice No"
+    },
+    "columns_fingerprint": "fp123",
+    "saved_at": "2026-07-23T07:26:43.660Z"
+  }
+}

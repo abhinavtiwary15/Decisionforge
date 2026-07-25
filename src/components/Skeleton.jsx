@@ -47,7 +47,7 @@ export function SkeletonTable({ rows = 8, cols = 6 }) {
   return (
     <div className="bg-paper border border-ink border-opacity-15 overflow-hidden">
       {/* Header row */}
-      <div className="flex gap-4 px-4 py-3 border-b border-ink border-opacity-10 bg-ink bg-opacity-5">
+      <div className="flex gap-4 px-4 py-3 border-b border-ink border-opacity-10 bg-ink-5">
         {Array.from({ length: cols }).map((_, i) => (
           <Pulse key={i} style={{ height: 10, flex: i === 0 ? 1.5 : 1, borderRadius: 1 }} />
         ))}

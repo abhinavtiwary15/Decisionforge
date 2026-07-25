@@ -28,7 +28,8 @@ WITH pr_enriched AS (
 joined_data AS (
   SELECT
     pr.invoice_id,
-    pr.client_gstin                              AS pr_client_gstin,
+    pr.vendor_name,
+    pr.client_gstin                              AS client_gstin,
     COALESCE(pr.vendor_gstin, b.vendor_gstin)    AS vendor_gstin,
     COALESCE(pr.invoice_number, b.invoice_number) AS invoice_number,
     pr.invoice_date                              AS pr_invoice_date,
@@ -118,7 +119,7 @@ ORDER BY
     WHEN 'HIGH'     THEN 2
     WHEN 'MEDIUM'   THEN 3
     WHEN 'LOW'      THEN 4
-    ELSE            NULL
+    WHEN 'NONE'     THEN 5
   END,
   itc_at_risk DESC
 """
@@ -129,7 +130,7 @@ ORDER BY
 VIEW3 = """
 CREATE OR REPLACE VIEW `decisionforge-501312.gst_notices.reconciliation_summary_by_client` AS
 SELECT
-  pr_client_gstin                                             AS client_gstin,
+  client_gstin,
   COUNT(*)                                                    AS total_invoices,
   COUNTIF(mismatch_type = 'CLEAN_MATCH')                     AS clean_matches,
   COUNTIF(mismatch_type = 'MISSING_IN_2B')                   AS missing_in_2b,
@@ -140,7 +141,7 @@ SELECT
   COUNTIF(mismatch_type = 'INVALID_GSTIN')                   AS invalid_gstins,
   SUM(itc_at_risk)                                           AS total_itc_at_risk
 FROM `decisionforge-501312.gst_notices.reconciliation_matches`
-GROUP BY pr_client_gstin
+GROUP BY client_gstin
 """
 
 # ---------------------------------------------------------------------------
@@ -150,7 +151,7 @@ VIEW4 = """
 CREATE OR REPLACE VIEW `decisionforge-501312.gst_notices.data_quality_flags` AS
 SELECT
   invoice_id,
-  pr_client_gstin                              AS client_gstin,
+  client_gstin,
   vendor_gstin,
   invoice_number,
   CASE
