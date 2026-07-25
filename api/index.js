@@ -1,5 +1,8 @@
-const app = require('../server.js');
+const express = require('express');
+const serverApp = require('../server.js');
 
-module.exports = (req, res) => {
-  return app(req, res);
-};
+const app = express();
+app.use('/api', serverApp);
+app.use('/', serverApp);
+
+module.exports = app;
