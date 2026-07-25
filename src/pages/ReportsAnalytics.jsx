@@ -20,6 +20,7 @@ const C = {
 };
 
 const INR = (v) => `₹${Number(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+const PDF_INR = (v) => `Rs. ${Number(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
 
 // ─── PDF Generation ─────────────────────────────────────────────────────────
 function buildPDF({ reportType, selectedClient, profile, riskByClient, trendData, mismatchDist, dataQualityFlags }) {
@@ -67,7 +68,7 @@ function buildPDF({ reportType, selectedClient, profile, riskByClient, trendData
   doc.text('DECISIONFORGE', M, 10);
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
-  doc.text('GST Reconciliation Audit System — Audit Report', M, 16);
+  doc.text('GST Reconciliation Audit System - Audit Report', M, 16);
   const now = new Date();
   doc.text(`Generated: ${now.toLocaleDateString('en-IN')}  ${now.toLocaleTimeString('en-IN')}`, W - M, 16, { align: 'right' });
   y = 32;
@@ -114,11 +115,11 @@ function buildPDF({ reportType, selectedClient, profile, riskByClient, trendData
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(6.5);
         doc.setTextColor(27, 24, 17);
-        doc.text(safeStr(item.invoice_number).slice(0, 15), M, y);
-        doc.text(safeStr(item.source).slice(0, 15), M + 32, y);
-        doc.text(safeStr(item.vendor_gstin).slice(0, 20), M + 60, y);
+        doc.text(safeStr(item.invoice_number, 'N/A').slice(0, 15), M, y);
+        doc.text(safeStr(item.source, 'N/A').slice(0, 15), M + 32, y);
+        doc.text(safeStr(item.vendor_gstin, 'N/A').slice(0, 20), M + 60, y);
         
-        const errTxt = safeStr(item.validation_error);
+        const errTxt = safeStr(item.validation_error, 'N/A');
         const splitErr = doc.splitTextToSize(errTxt, 88);
         doc.text(splitErr, M + 105, y);
         y += Math.max(LINE_H, splitErr.length * 4);
@@ -128,7 +129,7 @@ function buildPDF({ reportType, selectedClient, profile, riskByClient, trendData
     // ── STANDARD ITC / MISMATCH RISK PDF BODY ──
     // Risk by client summary
     if (riskByClient && riskByClient.length) {
-      section('ITC at Risk — by Client GSTIN');
+      section('ITC at Risk - by Client GSTIN');
       const subset = selectedClient
         ? riskByClient.filter(r => r.client_gstin === selectedClient)
         : riskByClient.slice(0, 10);
@@ -137,21 +138,28 @@ function buildPDF({ reportType, selectedClient, profile, riskByClient, trendData
       doc.text('Client GSTIN', M, y);
       doc.text('Total Invoices', M + 60, y);
       doc.text('Risk Count', M + 90, y);
-      doc.text('ITC at Risk (₹)', M + 120, y);
+      doc.text('ITC at Risk (Rs.)', M + 120, y);
       doc.text('Missing in 2B', M + 152, y);
       y += 5;
       divider();
       subset.forEach((r, i) => {
         if (y > 270) { doc.addPage(); y = M; }
-        doc.setFont(i % 2 === 0 ? 'helvetica' : 'helvetica', 'normal');
+        doc.setFont('helvetica', 'normal');
         doc.setFontSize(7.5);
         if (i % 2 === 0) { doc.setFillColor(243, 238, 226); doc.rect(M, y - 3.5, W - M * 2, 5.5, 'F'); }
         doc.setTextColor(27, 24, 17);
-        doc.text(safeStr(r.client_gstin).slice(0, 20), M, y);
-        doc.text(String(safeInt(r.total_invoices)), M + 60, y);
-        doc.text(String(safeInt(r.risk_count)), M + 90, y);
-        doc.text(INR(safeFloat(r.total_itc_at_risk)), M + 120, y);
-        doc.text(String(safeInt(r.missing_in_2b)), M + 152, y);
+
+        const gstin = safeStr(r.client_gstin, 'N/A');
+        const invoices = safeInt(r.total_invoices ?? r.total_invoice_count ?? 0);
+        const riskCount = safeInt(r.risk_count ?? 0);
+        const itcAtRisk = safeFloat(r.total_itc_at_risk ?? 0);
+        const missing2b = safeInt(r.missing_in_2b ?? r.missing_in_2b_count ?? 0);
+
+        doc.text(gstin.slice(0, 20), M, y);
+        doc.text(String(invoices), M + 60, y);
+        doc.text(String(riskCount), M + 90, y);
+        doc.text(PDF_INR(itcAtRisk), M + 120, y);
+        doc.text(String(missing2b), M + 152, y);
         y += LINE_H;
       });
       y += 4;
@@ -162,7 +170,8 @@ function buildPDF({ reportType, selectedClient, profile, riskByClient, trendData
       if (y > 240) { doc.addPage(); y = M; }
       section('Mismatch Distribution Summary');
       mismatchDist.forEach(item => {
-        row(item.name, `${item.value.toLocaleString()} records`);
+        const val = safeInt(item.value ?? 0);
+        row(safeStr(item.name, 'Unknown'), `${val.toLocaleString()} records`);
       });
       y += 4;
     }
@@ -175,7 +184,7 @@ function buildPDF({ reportType, selectedClient, profile, riskByClient, trendData
       doc.setFontSize(7.5);
       doc.text('Filing Period', M, y);
       doc.text('Mismatches', M + 55, y);
-      doc.text('ITC at Risk (₹)', M + 95, y);
+      doc.text('ITC at Risk (Rs.)', M + 95, y);
       doc.text('Critical', M + 140, y);
       doc.text('High', M + 162, y);
       y += 5;
@@ -186,11 +195,18 @@ function buildPDF({ reportType, selectedClient, profile, riskByClient, trendData
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(7.5);
         doc.setTextColor(27, 24, 17);
-        doc.text(safeStr(r.filing_period), M, y);
-        doc.text(String(safeInt(r.mismatch_count)), M + 55, y);
-        doc.text(INR(safeFloat(r.total_itc_at_risk)), M + 95, y);
-        doc.text(String(safeInt(r.critical_count)), M + 140, y);
-        doc.text(String(safeInt(r.high_count)), M + 162, y);
+
+        const period = safeStr(r.filing_period, 'No GSTR-2B Filing');
+        const mismatches = safeInt(r.mismatch_count ?? r.mismatches ?? 0);
+        const itcAtRisk = safeFloat(r.total_itc_at_risk ?? r.itc ?? 0);
+        const critical = safeInt(r.critical_count ?? r.critical ?? 0);
+        const high = safeInt(r.high_count ?? r.high ?? 0);
+
+        doc.text(period, M, y);
+        doc.text(String(mismatches), M + 55, y);
+        doc.text(PDF_INR(itcAtRisk), M + 95, y);
+        doc.text(String(critical), M + 140, y);
+        doc.text(String(high), M + 162, y);
         y += LINE_H;
       });
       y += 4;
@@ -206,7 +222,7 @@ function buildPDF({ reportType, selectedClient, profile, riskByClient, trendData
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7);
     doc.setTextColor(243, 238, 226);
-    doc.text('CONFIDENTIAL — DecisionForge Audit Ledger Portal', M, 296);
+    doc.text('CONFIDENTIAL - DecisionForge Audit Ledger Portal', M, 296);
     doc.text(`Page ${i} of ${pageCount}`, W - M, 296, { align: 'right' });
   }
 

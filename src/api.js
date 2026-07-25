@@ -12,10 +12,10 @@
  */
 
 /** Coerce a value that might be a BQ date object to a plain string. */
-export function safeStr(val) {
-  if (val === null || val === undefined) return '';
-  if (typeof val === 'object' && val.value !== undefined) return String(val.value);
-  if (typeof val === 'object') return JSON.stringify(val); // last resort
+export function safeStr(val, fallback = '') {
+  if (val === null || val === undefined || val === '') return fallback;
+  if (typeof val === 'object' && val.value !== undefined) return String(val.value ?? fallback);
+  if (typeof val === 'object') return JSON.stringify(val);
   return String(val);
 }
 
