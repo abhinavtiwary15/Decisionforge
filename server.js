@@ -214,20 +214,21 @@ app.use((req, res, next) => {
 // BIGQUERY CLIENT
 // ──────────────────────────────────────────────────────────────────────────────
 let bigquery = null;
-try {
-  const options = { projectId: 'decisionforge-501312' };
-  if (process.env.BIGQUERY_CREDENTIALS) {
-    try {
-      options.credentials = JSON.parse(process.env.BIGQUERY_CREDENTIALS);
-      console.log('Using BigQuery credentials from BIGQUERY_CREDENTIALS env var.');
-    } catch (e) {
-      console.error('Failed to parse BIGQUERY_CREDENTIALS env var:', e.message);
-    }
+if (process.env.BIGQUERY_CREDENTIALS) {
+  try {
+    const credentials = JSON.parse(process.env.BIGQUERY_CREDENTIALS);
+    bigquery = new BigQuery({ projectId: 'decisionforge-501312', credentials });
+    console.log('Using BigQuery credentials from BIGQUERY_CREDENTIALS env var.');
+  } catch (e) {
+    console.error('Failed to parse BIGQUERY_CREDENTIALS env var:', e.message);
   }
-  bigquery = new BigQuery(options);
-  console.log('BigQuery client initialized successfully.');
-} catch (err) {
-  console.warn('Failed to initialize BigQuery client. Falling back to local data.', err.message);
+} else if (!process.env.VERCEL) {
+  try {
+    bigquery = new BigQuery({ projectId: 'decisionforge-501312' });
+    console.log('BigQuery client initialized via local ADC.');
+  } catch (err) {
+    console.warn('Failed to initialize local BigQuery client:', err.message);
+  }
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
