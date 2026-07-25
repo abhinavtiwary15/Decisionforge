@@ -411,8 +411,8 @@ app.get('/api/clients', async (req, res) => {
       });
       bqClients = rows.map(normalizeClientRow);
     } catch (err) {
-      console.warn('[/api/clients] BQ failed:', err.message);
-      return res.status(500).json({ error: `BigQuery query failed: ${err.message}` });
+      console.warn('[/api/clients] BQ failed, using fallback:', err.message);
+      bqClients = MOCK_CLIENTS;
     }
   } else {
     bqClients = MOCK_CLIENTS;
@@ -550,10 +550,7 @@ app.get('/api/reconciliation', async (req, res) => {
       const enriched = await enrichWithExplanations(rows.map(formatBqRow));
       return res.json({ data: enriched, total, limit: params.limit, offset: params.offset });
     } catch (err) {
-      console.warn('[/api/reconciliation] BQ query failed:', err.message);
-      if (isFilteredOrSearched) {
-        return res.status(500).json({ error: `BigQuery query failed: ${err.message}` });
-      }
+      console.warn('[/api/reconciliation] BQ query failed, using fallback:', err.message);
     }
   }
 
