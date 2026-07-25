@@ -327,10 +327,17 @@ const MOCK_DATA_QUALITY_FLAGS = [
 // Client registry JSON storage path for newly onboarded clients
 const CLIENT_REGISTRY_FILE = path.join(__dirname, 'data', 'client_registry.json');
 
+const TEST_GSTIN_RE = /(9999|8888|0000|SMOKE|TEST)/i;
+function isTestGstin(gstin) {
+  if (!gstin || typeof gstin !== 'string') return false;
+  return TEST_GSTIN_RE.test(gstin.trim());
+}
+
 function getRegisteredClientsLocal() {
   try {
     if (fs.existsSync(CLIENT_REGISTRY_FILE)) {
-      return JSON.parse(fs.readFileSync(CLIENT_REGISTRY_FILE, 'utf8'));
+      const rows = JSON.parse(fs.readFileSync(CLIENT_REGISTRY_FILE, 'utf8'));
+      return (rows || []).filter(r => !isTestGstin(r.client_gstin));
     }
   } catch (err) {
     console.warn('Failed to read client_registry.json:', err.message);
@@ -414,7 +421,7 @@ app.get('/api/clients', async (req, res) => {
       const [rows] = await bq.query({
         query: `SELECT * FROM \`decisionforge-501312.gst_notices.reconciliation_summary_by_client\``,
       });
-      bqClients = rows.map(normalizeClientRow);
+      bqClients = rows.map(normalizeClientRow).filter(c => c.client_gstin && !isTestGstin(c.client_gstin));
     } catch (err) {
       console.warn('[/api/clients] BQ failed, using fallback:', err.message);
       bqClients = MOCK_CLIENTS;
@@ -429,7 +436,7 @@ app.get('/api/clients', async (req, res) => {
   
   const merged = [...bqClients];
   registered.forEach(reg => {
-    if (!existingGstins.has(reg.client_gstin)) {
+    if (reg.client_gstin && !existingGstins.has(reg.client_gstin) && !isTestGstin(reg.client_gstin)) {
       merged.push({
         client_gstin: reg.client_gstin,
         client_name: reg.client_name || reg.client_gstin,
@@ -446,7 +453,7 @@ app.get('/api/clients', async (req, res) => {
     }
   });
 
-  return res.json(merged);
+  return res.json(merged.filter(c => c.client_gstin && !isTestGstin(c.client_gstin)));
 });
 
 // 1b. POST /api/clients  (Onboard new client)

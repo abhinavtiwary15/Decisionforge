@@ -13,6 +13,13 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
+// ── Test GSTIN Pattern Guard ──────────────────────────────────────────────────
+const TEST_GSTIN_RE = /(9999|8888|0000|SMOKE|TEST)/i;
+function isTestGstin(gstin) {
+  if (!gstin || typeof gstin !== 'string') return false;
+  return TEST_GSTIN_RE.test(gstin.trim());
+}
+
 // ──────────────────────────────────────────────────────────────────────────────
 // EXPLANATION CACHE
 // ──────────────────────────────────────────────────────────────────────────────
@@ -185,6 +192,14 @@ const MOCK_RECONCILIATION = [
   { invoice_id: 'pr-2', client_gstin: '07FTCJJ3204D7Z5', vendor_gstin: '27BBBBB5678B1Z2', vendor_name: 'Tata Consultancy Services', invoice_number: 'TCS-99812',    pr_invoice_date: '2026-03-12', b_invoice_date: null,         pr_taxable_value: 300000, b_taxable_value: null,   pr_cgst: 27000, b_cgst: null,  pr_sgst: 27000, b_sgst: null,  pr_igst: 0, b_igst: null, pr_total_itc_claimed: 54000, b_itc_available: null,  filing_period: null,      mismatch_type: 'MISSING_IN_2B',    itc_at_risk: 54000, risk_label: 'CRITICAL', explanation: 'Invoice TCS-99812 claims Rs.54,000 ITC but has no corresponding entry in vendor GSTR-2B filing.' },
   { invoice_id: 'pr-3', client_gstin: '07FTCJJ3204D7Z5', vendor_gstin: '29CCCCC2222C1Z8', vendor_name: 'Infosys Limited',            invoice_number: 'INF-8871',    pr_invoice_date: '2026-03-15', b_invoice_date: '2026-03-15', pr_taxable_value: 200000, b_taxable_value: 200000, pr_cgst: 18000, b_cgst: 15000, pr_sgst: 18000, b_sgst: 15000, pr_igst: 0, b_igst: 0,    pr_total_itc_claimed: 36000, b_itc_available: 30000, filing_period: '2026-03', mismatch_type: 'AMOUNT_MISMATCH',   itc_at_risk: 36000, risk_label: 'HIGH',     explanation: 'Amount mismatch: PR claims Rs.36,000 tax but GSTR-2B reports Rs.30,000 available. Difference: Rs.6,000.' },
   { invoice_id: 'pr-4', client_gstin: '07FTCJJ3204D7Z5', vendor_gstin: '24DDDDD3333D1Z9', vendor_name: 'Adani Enterprises',          invoice_number: 'ADA-091A',    pr_invoice_date: '2026-03-18', b_invoice_date: '2026-03-18', pr_taxable_value: 150000, b_taxable_value: 150000, pr_cgst: 13500, b_cgst: 13500, pr_sgst: 13500, b_sgst: 13500, pr_igst: 0, b_igst: 0,    pr_total_itc_claimed: 27000, b_itc_available: 27000, filing_period: '2026-04', mismatch_type: 'TIMING_DIFFERENCE', itc_at_risk: 0,     risk_label: 'LOW',      explanation: 'Invoice ADA-091A was filed in GSTR-2B under period 2026-04 instead of 2026-03 (1 month timing difference).' },
+  { invoice_id: 'pr-5', client_gstin: '07FTCJJ3204D7Z5', vendor_gstin: '27EEEEE4444E1Z4', vendor_name: 'HDFC Bank Corp',             invoice_number: 'HDF-7761',    pr_invoice_date: '2026-03-20', b_invoice_date: '2026-03-20', pr_taxable_value: 80000,  b_taxable_value: 80000,  pr_cgst: 7200,  b_cgst: 7200,  pr_sgst: 7200,  b_sgst: 7200,  pr_igst: 0, b_igst: 0,    pr_total_itc_claimed: 14400, b_itc_available: 14400, filing_period: '2026-03', mismatch_type: 'CLEAN_MATCH',       itc_at_risk: 0,     risk_label: 'NONE',     explanation: 'Invoice HDF-7761 from vendor 27EEEEE4444E1Z4 reconciles perfectly.' },
+  { invoice_id: 'pr-6', client_gstin: '07FTCJJ3204D7Z5', vendor_gstin: '27EEEEE4444E1Z4', vendor_name: 'HDFC Bank Corp',             invoice_number: 'HDF-7761',    pr_invoice_date: '2026-03-20', b_invoice_date: '2026-03-20', pr_taxable_value: 80000,  b_taxable_value: 80000,  pr_cgst: 7200,  b_cgst: 7200,  pr_sgst: 7200,  b_sgst: 7200,  pr_igst: 0, b_igst: 0,    pr_total_itc_claimed: 14400, b_itc_available: 14400, filing_period: '2026-03', mismatch_type: 'DUPLICATE_CLAIM',   itc_at_risk: 14400, risk_label: 'MEDIUM',   explanation: 'Invoice number HDF-7761 is claimed multiple times in the Purchase Register.' },
+];
+
+const MOCK_DATA_QUALITY_FLAGS = [
+  { invoice_id: 'dq-1', client_gstin: '07FTCJJ3204D7Z5', vendor_gstin: '99XXXZZ1234A1ZA', invoice_number: 'INV/2026/0921', validation_error: "State code '99' is out of the valid range 01-37.", source: 'purchase_register', invoice_date: '2026-03-12' },
+  { invoice_id: 'dq-2', client_gstin: '09LVEJR7606R4ZA', vendor_gstin: '27ABCDE1234K1Y9', invoice_number: 'TX-9988',       validation_error: "Position 14 must be the letter Z; got 'Y'.",                               source: 'purchase_register', invoice_date: '2026-03-14' },
+  { invoice_id: 'dq-3', client_gstin: '09TLPJZ1478E3ZR', vendor_gstin: '09AAA1234A1Z',    invoice_number: 'INV-456',        validation_error: 'GSTIN must be exactly 15 characters; got 12. Raw value: 09AAA1234A1Z', source: 'gstr2b',            invoice_date: '2026-03-15' },
 ];
 
 async function enrichWithExplanations(rows) {
@@ -229,7 +244,8 @@ const CLIENT_REGISTRY_FILE = path.join(__dirname, '..', 'data', 'client_registry
 function getRegisteredClientsLocal() {
   try {
     if (fs.existsSync(CLIENT_REGISTRY_FILE)) {
-      return JSON.parse(fs.readFileSync(CLIENT_REGISTRY_FILE, 'utf8'));
+      const rows = JSON.parse(fs.readFileSync(CLIENT_REGISTRY_FILE, 'utf8'));
+      return (rows || []).filter(r => !isTestGstin(r.client_gstin));
     }
   } catch (err) {
     console.warn('Failed to read client_registry.json:', err.message);
@@ -245,7 +261,7 @@ async function getRegisteredClients() {
       const [rows] = await bq.query({
         query: `SELECT client_gstin, client_name, createdAt FROM \`decisionforge-501312.gst_notices.client_registry\``
       });
-      bqRows = rows || [];
+      bqRows = (rows || []).filter(r => !isTestGstin(r.client_gstin));
     } catch (err) {
       console.warn('[client_registry] BQ read failed:', err.message);
     }
@@ -260,7 +276,7 @@ async function getRegisteredClients() {
     }
   });
 
-  return merged;
+  return merged.filter(r => !isTestGstin(r.client_gstin));
 }
 
 async function saveRegisteredClient(newEntry) {
@@ -304,7 +320,7 @@ async function saveRegisteredClient(newEntry) {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// ENDPOINTS (/api prefix + / root route fallback)
+// ALL 13 ENDPOINTS (/api prefix + / root route fallback)
 // ──────────────────────────────────────────────────────────────────────────────
 
 // Health check endpoint
@@ -321,7 +337,7 @@ app.get(['/api/clients', '/clients'], async (req, res) => {
       const [rows] = await bq.query({
         query: `SELECT * FROM \`decisionforge-501312.gst_notices.reconciliation_summary_by_client\``,
       });
-      bqClients = rows.map(normalizeClientRow);
+      bqClients = rows.map(normalizeClientRow).filter(c => c.client_gstin && !isTestGstin(c.client_gstin));
     } catch (err) {
       console.warn('[/api/clients] BQ failed, using fallback:', err.message);
       bqClients = MOCK_CLIENTS;
@@ -335,7 +351,7 @@ app.get(['/api/clients', '/clients'], async (req, res) => {
   
   const merged = [...bqClients];
   registered.forEach(r => {
-    if (!existingGstins.has(r.client_gstin)) {
+    if (r.client_gstin && !existingGstins.has(r.client_gstin) && !isTestGstin(r.client_gstin)) {
       merged.push({
         client_gstin: r.client_gstin,
         client_name: r.client_name || r.client_gstin,
@@ -352,13 +368,13 @@ app.get(['/api/clients', '/clients'], async (req, res) => {
     }
   });
 
-  return res.json(merged);
+  return res.json(merged.filter(c => c.client_gstin && !isTestGstin(c.client_gstin)));
 });
 
-// POST /api/clients
+// 1b. POST /api/clients
 app.post(['/api/clients', '/clients'], async (req, res) => {
-  const { client_gstin, client_name } = req.body;
-  if (!client_gstin) {
+  const { client_gstin, client_name } = req.body || {};
+  if (!client_gstin || typeof client_gstin !== 'string') {
     return res.status(400).json({ error: 'client_gstin is required.' });
   }
 
@@ -407,7 +423,6 @@ app.post(['/api/clients', '/clients'], async (req, res) => {
 // 2. GET /api/reconciliation
 app.get(['/api/reconciliation', '/reconciliation'], async (req, res) => {
   const { client_gstin, risk_label, mismatch_type, limit = 25, offset = 0, search, exclude_clean } = req.query;
-  const isFilteredOrSearched = !!(client_gstin || risk_label || mismatch_type || search || exclude_clean === 'true');
 
   const bq = getBigQueryClient();
   if (bq) {
@@ -463,7 +478,50 @@ app.get(['/api/reconciliation', '/reconciliation'], async (req, res) => {
   return res.json({ data: enriched, total: filtered.length, limit: l, offset: o });
 });
 
-// 3. GET /api/communication/draft
+// 3. GET /api/reconciliation/detail
+app.get(['/api/reconciliation/detail', '/reconciliation/detail'], async (req, res) => {
+  const { invoice_number, vendor_gstin } = req.query;
+  if (!invoice_number || !vendor_gstin) {
+    return res.status(400).json({ error: 'Missing invoice_number or vendor_gstin' });
+  }
+
+  const bq = getBigQueryClient();
+  if (bq) {
+    try {
+      const [rows] = await bq.query({
+        query: `SELECT * FROM \`decisionforge-501312.gst_notices.reconciliation_matches\` WHERE invoice_number = @invoice_number AND vendor_gstin = @vendor_gstin LIMIT 1`,
+        params: { invoice_number, vendor_gstin },
+      });
+      if (rows.length > 0) {
+        const row = formatBqRow(rows[0]);
+        const itc_at_risk = parseFloat(row.itc_at_risk || 0);
+        let risk_label = 'NONE';
+        if      (row.mismatch_type === 'MISSING_IN_2B' && itc_at_risk > 50000)  risk_label = 'CRITICAL';
+        else if (row.mismatch_type === 'MISSING_IN_2B')                          risk_label = 'HIGH';
+        else if (row.mismatch_type === 'AMOUNT_MISMATCH' && itc_at_risk > 25000) risk_label = 'HIGH';
+        else if (row.mismatch_type === 'AMOUNT_MISMATCH')                        risk_label = 'MEDIUM';
+        else if (row.mismatch_type === 'DUPLICATE_CLAIM')                        risk_label = 'MEDIUM';
+        else if (['TIMING_DIFFERENCE', 'MISSING_IN_REGISTER'].includes(row.mismatch_type)) risk_label = 'LOW';
+        const enriched = await enrichWithExplanations([{ ...row, risk_label, itc_at_risk }]);
+        return res.json(enriched[0]);
+      }
+      return res.status(404).json({ error: `Invoice ${invoice_number} for vendor ${vendor_gstin} not found.` });
+    } catch (err) {
+      console.warn('[/api/reconciliation/detail] BQ failed:', err.message);
+      return res.status(500).json({ error: `BigQuery query failed: ${err.message}` });
+    }
+  }
+
+  const found = MOCK_RECONCILIATION.find(i => i.invoice_number === invoice_number && i.vendor_gstin === vendor_gstin);
+  if (found) {
+    const enriched = await enrichWithExplanations([found]);
+    return res.json(enriched[0]);
+  }
+
+  return res.status(404).json({ error: `Invoice ${invoice_number} for vendor ${vendor_gstin} not found.` });
+});
+
+// 4. GET /api/communication/draft
 app.get(['/api/communication/draft', '/communication/draft'], async (req, res) => {
   const { invoice_number, vendor_gstin, draft_type = 'vendor', lang = 'en' } = req.query;
 
@@ -475,7 +533,6 @@ app.get(['/api/communication/draft', '/communication/draft'], async (req, res) =
   const cacheKey = `${invoice_number}_${vendor_gstin}_${draft_type}_${lang}`;
 
   if (cache[cacheKey]) {
-    console.log(`[comm cache hit] ${cacheKey}`);
     return res.json({ draft: cache[cacheKey], cached: true });
   }
 
@@ -525,6 +582,285 @@ app.get(['/api/communication/draft', '/communication/draft'], async (req, res) =
     : `Dear Client, Invoice ${row.invoice_number} from vendor ${row.vendor_name || vendor_gstin} has mismatch type ${row.mismatch_type}. Total ITC at risk: Rs.${row.itc_at_risk || 0}.`;
   
   return res.json({ draft: fallbackText, cached: false, fallback: true });
+});
+
+// 5. GET /api/data-quality
+app.get(['/api/data-quality', '/data-quality'], async (req, res) => {
+  const bq = getBigQueryClient();
+  if (bq) {
+    try {
+      const [rows] = await bq.query({ query: `SELECT * FROM \`decisionforge-501312.gst_notices.data_quality_flags\`` });
+      const dbFlags = rows.map(formatBqRow);
+      return res.json(dbFlags);
+    } catch (err) {
+      console.warn('[/api/data-quality] BQ failed, fallback:', err.message);
+    }
+  }
+  return res.json(MOCK_DATA_QUALITY_FLAGS);
+});
+
+// 6. GET /api/benchmark
+app.get(['/api/benchmark', '/benchmark'], (req, res) => {
+  const csvPath = path.join(__dirname, '..', 'data', 'benchmark_results.csv');
+  try {
+    if (fs.existsSync(csvPath)) {
+      const lines = fs.readFileSync(csvPath, 'utf8').trim().split('\n');
+      const headers = lines[0].split(',');
+      const data = lines.slice(1).map(line => {
+        const values = line.split(',');
+        const obj = {};
+        headers.forEach((h, i) => { const v = values[i]; obj[h.trim()] = isNaN(v) ? v.trim() : parseFloat(v); });
+        return obj;
+      });
+      setCache(req.originalUrl, data, 300_000);
+      return res.json(data);
+    }
+  } catch (err) {
+    console.error('[/api/benchmark] CSV read failed:', err.message);
+  }
+  return res.json([
+    { Scale: 500,   Backend: 'pandas', 'Time (s)': 0.018 },
+    { Scale: 500,   Backend: 'cudf',   'Time (s)': 0.024 },
+    { Scale: 5000,  Backend: 'pandas', 'Time (s)': 0.055 },
+    { Scale: 5000,  Backend: 'cudf',   'Time (s)': 0.020 },
+    { Scale: 50000, Backend: 'pandas', 'Time (s)': 0.853 },
+    { Scale: 50000, Backend: 'cudf',   'Time (s)': 0.123 },
+  ]);
+});
+
+// 7. GET /api/cache-stats
+app.get(['/api/cache-stats', '/cache-stats'], (req, res) => {
+  const now = Date.now();
+  const entries = [];
+  for (const [key, val] of apiCache.entries()) {
+    entries.push({ key, ttlRemaining: Math.round((val.expiry - now) / 1000) + 's' });
+  }
+  res.json({ size: apiCache.size, entries });
+});
+
+// 8. GET /api/analytics/risk-by-client
+app.get(['/api/analytics/risk-by-client', '/analytics/risk-by-client'], async (req, res) => {
+  const bq = getBigQueryClient();
+  if (bq) {
+    try {
+      const [rows] = await bq.query({
+        query: `
+          SELECT
+            client_gstin,
+            COUNT(*)                                              AS total_invoices,
+            COUNTIF(risk_label IN ('CRITICAL','HIGH'))           AS risk_count,
+            ROUND(SUM(itc_at_risk), 2)                          AS total_itc_at_risk,
+            COUNTIF(mismatch_type = 'MISSING_IN_2B')            AS missing_in_2b,
+            COUNTIF(mismatch_type = 'AMOUNT_MISMATCH')          AS amount_mismatch,
+            COUNTIF(mismatch_type = 'TIMING_DIFFERENCE')        AS timing_diff,
+            COUNTIF(mismatch_type = 'DUPLICATE_CLAIM')          AS duplicate
+          FROM \`decisionforge-501312.gst_notices.reconciliation_risk_ranked\`
+          WHERE client_gstin IS NOT NULL AND client_gstin NOT LIKE '%9999%' AND client_gstin NOT LIKE '%8888%'
+          GROUP BY client_gstin
+          ORDER BY total_itc_at_risk DESC
+          LIMIT 20
+        `
+      });
+      return res.json(rows.map(formatBqRow));
+    } catch (err) {
+      console.warn('[/api/analytics/risk-by-client] BQ failed, fallback:', err.message);
+    }
+  }
+
+  const byClient = {};
+  MOCK_RECONCILIATION.forEach(r => {
+    const k = r.client_gstin || 'UNKNOWN';
+    if (isTestGstin(k)) return;
+    if (!byClient[k]) byClient[k] = { client_gstin: k, total_invoices: 0, risk_count: 0, total_itc_at_risk: 0, missing_in_2b: 0, amount_mismatch: 0, timing_diff: 0, duplicate: 0 };
+    byClient[k].total_invoices++;
+    if (['CRITICAL','HIGH'].includes(r.risk_label)) byClient[k].risk_count++;
+    byClient[k].total_itc_at_risk += (parseFloat(r.itc_at_risk) || 0);
+    if (r.mismatch_type === 'MISSING_IN_2B')     byClient[k].missing_in_2b++;
+    if (r.mismatch_type === 'AMOUNT_MISMATCH')   byClient[k].amount_mismatch++;
+    if (r.mismatch_type === 'TIMING_DIFFERENCE') byClient[k].timing_diff++;
+    if (r.mismatch_type === 'DUPLICATE_CLAIM')   byClient[k].duplicate++;
+  });
+  return res.json(Object.values(byClient).sort((a, b) => b.total_itc_at_risk - a.total_itc_at_risk));
+});
+
+// 9. GET /api/analytics/trend
+app.get(['/api/analytics/trend', '/analytics/trend'], async (req, res) => {
+  const bq = getBigQueryClient();
+  if (bq) {
+    try {
+      const [rows] = await bq.query({
+        query: `
+          SELECT
+            COALESCE(filing_period, 'No GSTR-2B Filing (Vendor Non-Compliance)') AS filing_period,
+            COUNT(*)                                                             AS total_invoices,
+            COUNTIF(mismatch_type != 'CLEAN_MATCH')                              AS mismatch_count,
+            ROUND(SUM(itc_at_risk), 2)                                           AS total_itc_at_risk,
+            COUNTIF(risk_label = 'CRITICAL')                                     AS critical_count,
+            COUNTIF(risk_label = 'HIGH')                                         AS high_count
+          FROM \`decisionforge-501312.gst_notices.reconciliation_risk_ranked\`
+          GROUP BY filing_period
+          ORDER BY (CASE WHEN filing_period IS NULL THEN 1 ELSE 0 END), filing_period ASC
+          LIMIT 24
+        `
+      });
+      return res.json(rows.map(formatBqRow));
+    } catch (err) {
+      console.warn('[/api/analytics/trend] BQ failed, fallback:', err.message);
+    }
+  }
+
+  const byPeriod = {};
+  MOCK_RECONCILIATION.forEach(r => {
+    const k = r.filing_period || 'No GSTR-2B Filing (Vendor Non-Compliance)';
+    if (!byPeriod[k]) byPeriod[k] = { filing_period: k, total_invoices: 0, mismatch_count: 0, total_itc_at_risk: 0, critical_count: 0, high_count: 0 };
+    byPeriod[k].total_invoices++;
+    if (r.mismatch_type !== 'CLEAN_MATCH') byPeriod[k].mismatch_count++;
+    byPeriod[k].total_itc_at_risk += (parseFloat(r.itc_at_risk) || 0);
+    if (r.risk_label === 'CRITICAL') byPeriod[k].critical_count++;
+    if (r.risk_label === 'HIGH')     byPeriod[k].high_count++;
+  });
+  return res.json(Object.values(byPeriod).sort((a, b) => String(a.filing_period).localeCompare(String(b.filing_period))));
+});
+
+// 10. POST /api/purchase-register/upload
+const UPLOAD_DIR = path.join(__dirname, '..', 'tmp', 'pr_upload');
+if (!fs.existsSync(UPLOAD_DIR)) {
+  try { fs.mkdirSync(UPLOAD_DIR, { recursive: true }); } catch (e) {}
+}
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, UPLOAD_DIR),
+  filename: (req, file, cb) => cb(null, `${crypto.randomUUID()}${path.extname(file.originalname)}`)
+});
+const upload = multer({ storage });
+const uploadSessions = new Map();
+
+app.post(['/api/purchase-register/upload', '/purchase-register/upload'], upload.single('file'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded.' });
+  const fileId = path.basename(req.file.filename, path.extname(req.file.filename));
+  const clientGstin = req.query.client_gstin || req.body.client_gstin;
+  if (!clientGstin) {
+    try { fs.unlinkSync(req.file.path); } catch (e) {}
+    return res.status(400).json({ error: 'Missing client_gstin parameter.' });
+  }
+
+  const pythonPath = process.platform === 'win32' ? 'py' : 'python3';
+  const scriptPath = path.join(__dirname, '..', 'pipeline', 'ingest_purchase_register.py');
+  const pyProcess = spawnSync(pythonPath, [scriptPath, '--detect-columns', req.file.path], {
+    timeout: 20000,
+    encoding: 'utf8',
+  });
+  if (pyProcess.error?.code === 'ETIMEDOUT') {
+    try { fs.unlinkSync(req.file.path); } catch (e) {}
+    return res.status(500).json({ error: 'Column detection timed out (20s).' });
+  }
+  if (pyProcess.error || pyProcess.status !== 0) {
+    try { fs.unlinkSync(req.file.path); } catch (e) {}
+    return res.status(500).json({ error: 'Failed to parse file headers.' });
+  }
+
+  let columns;
+  try {
+    columns = JSON.parse(pyProcess.stdout.toString().trim());
+  } catch (err) {
+    try { fs.unlinkSync(req.file.path); } catch (e) {}
+    return res.status(500).json({ error: 'Invalid response from parser.' });
+  }
+
+  uploadSessions.set(fileId, { path: req.file.path, created_at: Date.now(), columns });
+  return res.json({ file_id: fileId, columns, savedMapping: null, mappingValid: false });
+});
+
+// 11. POST /api/purchase-register/save-mapping
+app.post(['/api/purchase-register/save-mapping', '/purchase-register/save-mapping'], async (req, res) => {
+  const { client_gstin, mapping, columns_fingerprint } = req.body;
+  if (!client_gstin || !mapping || !columns_fingerprint) {
+    return res.status(400).json({ error: 'Missing required parameters.' });
+  }
+
+  const saved_at = new Date().toISOString();
+  const mapping_json = JSON.stringify(mapping);
+  const columns_fingerprint_json = JSON.stringify(columns_fingerprint);
+  const bq = getBigQueryClient();
+
+  if (bq) {
+    try {
+      await bq.query({
+        query: `DELETE FROM \`decisionforge-501312.gst_notices.client_column_mappings\` WHERE client_gstin = @client_gstin`,
+        params: { client_gstin }
+      });
+      await bq.query({
+        query: `INSERT INTO \`decisionforge-501312.gst_notices.client_column_mappings\` (client_gstin, mapping_json, columns_fingerprint_json, saved_at) VALUES (@client_gstin, @mapping_json, @columns_fingerprint_json, @saved_at)`,
+        params: { client_gstin, mapping_json, columns_fingerprint_json, saved_at }
+      });
+      clearCache('/api/reconciliation');
+      return res.json({ success: true });
+    } catch (err) {
+      console.warn('[client_column_mappings] BQ save failed:', err.message);
+    }
+  }
+
+  const mappingsPath = path.join(__dirname, '..', 'data', 'client_column_mappings.json');
+  let allMappings = {};
+  if (fs.existsSync(mappingsPath)) {
+    try { allMappings = JSON.parse(fs.readFileSync(mappingsPath, 'utf8')); } catch (e) {}
+  }
+  allMappings[client_gstin] = { mapping, columns_fingerprint, saved_at };
+  try {
+    const dir = path.dirname(mappingsPath);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(mappingsPath, JSON.stringify(allMappings, null, 2), 'utf8');
+    clearCache('/api/reconciliation');
+    return res.json({ success: true });
+  } catch (err) {
+    return res.status(500).json({ error: 'Failed to save mapping: ' + err.message });
+  }
+});
+
+// 12. POST /api/purchase-register/ingest
+app.post(['/api/purchase-register/ingest', '/purchase-register/ingest'], (req, res) => {
+  const { file_id, mapping } = req.body;
+  if (!file_id || !mapping) {
+    return res.status(400).json({ error: 'Missing file_id or mapping.' });
+  }
+  const session = uploadSessions.get(file_id);
+  if (!session) {
+    return res.status(404).json({ error: 'Upload session not found.' });
+  }
+  const filePath = session.path;
+  if (!fs.existsSync(filePath)) {
+    uploadSessions.delete(file_id);
+    return res.status(404).json({ error: 'Uploaded file no longer exists.' });
+  }
+
+  const pythonPath = process.platform === 'win32' ? 'py' : 'python3';
+  const scriptPath = path.join(__dirname, '..', 'pipeline', 'ingest_purchase_register.py');
+  const pyProcess = spawnSync(pythonPath, [
+    scriptPath,
+    '--ingest',
+    filePath,
+    '--mapping',
+    JSON.stringify(mapping)
+  ], { timeout: 20000, encoding: 'utf8' });
+
+  try { if (fs.existsSync(filePath)) fs.unlinkSync(filePath); } catch (e) {}
+  uploadSessions.delete(file_id);
+
+  if (pyProcess.error?.code === 'ETIMEDOUT') {
+    return res.status(500).json({ error: 'Ingestion timed out (20s).' });
+  }
+  if (pyProcess.error || pyProcess.status !== 0) {
+    return res.status(500).json({ error: 'Failed to process file.' });
+  }
+
+  let result;
+  try {
+    result = JSON.parse(pyProcess.stdout.toString().trim());
+  } catch (err) {
+    return res.status(500).json({ error: 'Invalid JSON returned from ingestion.' });
+  }
+
+  clearCache();
+  return res.json(result);
 });
 
 module.exports = app;
