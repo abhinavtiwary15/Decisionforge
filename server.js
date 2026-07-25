@@ -6,7 +6,7 @@ const { BigQuery } = require('@google-cloud/bigquery');
 const { spawnSync } = require('child_process');
 const multer = require('multer');
 const crypto = require('crypto');
-const { generateExplanation, generateCommunicationDraft } = require(path.join(__dirname, 'pipeline', 'aiService'));
+const { generateExplanation, generateCommunicationDraft } = require('./pipeline/aiService.js');
 
 const app = express();
 const PORT = 3001;
