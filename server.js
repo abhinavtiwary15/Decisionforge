@@ -847,6 +847,69 @@ app.get('/api/analytics/trend', async (req, res) => {
   return res.json(Object.values(byPeriod).sort((a, b) => String(a.filing_period).localeCompare(String(b.filing_period))));
 });
 
+// 9. GET /api/vendor-summary  — per-vendor aggregation from vendor_compliance_summary view.
+// Returns one row per vendor (~80 rows). Aggregation happens in BigQuery, not the frontend,
+// so CLEAN_MATCH rows (ordered last in risk_ranked) are correctly counted here.
+app.get('/api/vendor-summary', async (req, res) => {
+  const bq = getBigQueryClient();
+  if (bq) {
+    try {
+      const [rows] = await bq.query({
+        query: `
+          SELECT
+            vendor_gstin,
+            vendor_name,
+            total_invoices,
+            clean_matches,
+            missing_in_2b,
+            amount_mismatches,
+            timing_differences,
+            duplicate_claims,
+            total_itc_at_risk,
+            match_rate
+          FROM \`decisionforge-501312.gst_notices.vendor_compliance_summary\`
+          ORDER BY total_itc_at_risk DESC
+        `
+      });
+      return res.json(rows.map(formatBqRow));
+    } catch (err) {
+      console.warn('[/api/vendor-summary] BQ failed, using fallback:', err.message);
+    }
+  }
+
+  // Mock fallback: derive per-vendor aggregation from MOCK_RECONCILIATION
+  const byVendor = {};
+  MOCK_RECONCILIATION.forEach(r => {
+    const k = r.vendor_gstin;
+    if (!k) return;
+    if (!byVendor[k]) byVendor[k] = {
+      vendor_gstin: k,
+      vendor_name: r.vendor_name || 'Unknown Vendor',
+      total_invoices: 0,
+      clean_matches: 0,
+      missing_in_2b: 0,
+      amount_mismatches: 0,
+      timing_differences: 0,
+      duplicate_claims: 0,
+      total_itc_at_risk: 0
+    };
+    const v = byVendor[k];
+    v.total_invoices++;
+    if (r.mismatch_type === 'CLEAN_MATCH')       v.clean_matches++;
+    else if (r.mismatch_type === 'MISSING_IN_2B')  v.missing_in_2b++;
+    else if (r.mismatch_type === 'AMOUNT_MISMATCH')v.amount_mismatches++;
+    else if (r.mismatch_type === 'TIMING_DIFFERENCE') v.timing_differences++;
+    else if (r.mismatch_type === 'DUPLICATE_CLAIM')   v.duplicate_claims++;
+    v.total_itc_at_risk += parseFloat(r.itc_at_risk) || 0;
+  });
+  const result = Object.values(byVendor).map(v => ({
+    ...v,
+    total_itc_at_risk: Math.round(v.total_itc_at_risk * 100) / 100,
+    match_rate: v.total_invoices > 0 ? Math.round((v.clean_matches / v.total_invoices) * 1000) / 10 : 0
+  }));
+  return res.json(result.sort((a, b) => b.total_itc_at_risk - a.total_itc_at_risk));
+});
+
 
 
 

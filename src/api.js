@@ -115,4 +115,6 @@ export const api = {
   getAnalyticsRiskByClient: () => apiFetch('/api/analytics/risk-by-client'),
 
   getAnalyticsTrend: () => apiFetch('/api/analytics/trend'),
+
+  getVendorSummary: () => apiFetch('/api/vendor-summary'),
 };

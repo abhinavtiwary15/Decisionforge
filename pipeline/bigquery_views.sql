@@ -207,3 +207,35 @@ SELECT
   pr_invoice_date                              AS invoice_date
 FROM `decisionforge-501312.gst_notices.reconciliation_matches`
 WHERE is_data_quality_flag = TRUE;  -- uses the dedicated flag column, NOT mismatch_type
+
+
+-- 5. Create vendor_compliance_summary view
+-- Aggregates reconciliation_matches at the vendor_gstin level.
+-- Reads from reconciliation_matches (NOT reconciliation_risk_ranked) so that
+-- CLEAN_MATCH rows — ordered last in risk_ranked — are fully included.
+-- NOTE: The deployed live view stores GSTIN-defect rows as mismatch_type='INVALID_GSTIN'
+-- (the is_data_quality_flag column is not present in the deployed schema).
+-- We exclude these rows by filtering mismatch_type != 'INVALID_GSTIN'.
+-- match_rate = clean_matches / total_invoices * 100, SAFE_DIVIDE guards zero-invoice vendors.
+CREATE OR REPLACE VIEW `decisionforge-501312.gst_notices.vendor_compliance_summary` AS
+SELECT
+  vendor_gstin,
+  ANY_VALUE(vendor_name)                                          AS vendor_name,
+  COUNT(*)                                                        AS total_invoices,
+  COUNTIF(mismatch_type = 'CLEAN_MATCH')                         AS clean_matches,
+  COUNTIF(mismatch_type = 'MISSING_IN_2B')                       AS missing_in_2b,
+  COUNTIF(mismatch_type = 'AMOUNT_MISMATCH')                     AS amount_mismatches,
+  COUNTIF(mismatch_type = 'TIMING_DIFFERENCE')                   AS timing_differences,
+  COUNTIF(mismatch_type = 'DUPLICATE_CLAIM')                     AS duplicate_claims,
+  ROUND(SUM(itc_at_risk), 2)                                     AS total_itc_at_risk,
+  ROUND(SAFE_DIVIDE(
+    COUNTIF(mismatch_type = 'CLEAN_MATCH'),
+    COUNT(*)
+  ) * 100, 1)                                                     AS match_rate
+FROM `decisionforge-501312.gst_notices.reconciliation_matches`
+WHERE mismatch_type != 'INVALID_GSTIN'   -- exclude structural GSTIN defects
+  AND vendor_gstin IS NOT NULL
+GROUP BY vendor_gstin
+ORDER BY total_itc_at_risk DESC;
+
+

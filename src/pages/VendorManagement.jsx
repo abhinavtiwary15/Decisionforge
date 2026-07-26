@@ -3,65 +3,38 @@ import { api, safeStr, safeFloat } from '../api';
 import { useAppData } from '../AppDataContext';
 import { SkeletonStatStrip, SkeletonTable } from '../components/Skeleton';
 
+// Derive compliance tier from match_rate (same thresholds as before).
+function getTier(matchRate) {
+  if (matchRate >= 95) return 'EXCELLENT';
+  if (matchRate >= 80) return 'ATTENTION';
+  return 'INTERVENTION';
+}
+
 export default function VendorManagement() {
   const contextData = useAppData();
 
   const [vendorRegistry, setVendorRegistry] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
-  const [loading, setLoading] = useState(!contextData?.prefetchDone);
+  const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(null);
 
   useEffect(() => {
-    // Helper to group and calculate registry from reconciliation array
-    function processVendors(items) {
-      const grouped = {};
-      items.forEach(item => {
-        const gstin = safeStr(item.vendor_gstin);
-        if (!gstin) return;
-        if (!grouped[gstin]) {
-          grouped[gstin] = {
-            vendor_gstin: gstin,
-            vendor_name: safeStr(item.vendor_name) || 'Unknown Vendor',
-            total_invoices: 0,
-            clean_matches: 0,
-            missing_in_2b: 0,
-            amount_mismatches: 0,
-            total_itc_at_risk: 0
-          };
-        }
-        const v = grouped[gstin];
-        v.total_invoices += 1;
-        if (item.mismatch_type === 'CLEAN_MATCH') v.clean_matches += 1;
-        else if (item.mismatch_type === 'MISSING_IN_2B') v.missing_in_2b += 1;
-        else if (item.mismatch_type === 'AMOUNT_MISMATCH') v.amount_mismatches += 1;
-        v.total_itc_at_risk += safeFloat(item.itc_at_risk);
-      });
-
-      return Object.values(grouped).map(v => {
-        const complianceRate = v.total_invoices > 0 ? (v.clean_matches / v.total_invoices) * 100 : 0;
-        let tier = 'EXCELLENT';
-        if (complianceRate < 80) tier = 'INTERVENTION';
-        else if (complianceRate < 95) tier = 'ATTENTION';
-        return { ...v, complianceRate, tier };
-      });
-    }
-
-    if (contextData?.prefetchDone && contextData?.vendorRecon) {
-      setVendorRegistry(processVendors(contextData.vendorRecon.data || []));
-      setLoading(false);
-      return;
-    }
-
     async function fetchVendors() {
       setLoading(true);
-      const { data, error } = await api.getReconciliation({ limit: 1000 });
+      const { data, error } = await api.getVendorSummary();
       if (error) {
         setFetchError(error);
         setLoading(false);
         return;
       }
-      setVendorRegistry(processVendors(data?.data || []));
+      // data is already aggregated per-vendor from BQ; just add the tier.
+      const enriched = (Array.isArray(data) ? data : []).map(v => ({
+        ...v,
+        complianceRate: safeFloat(v.match_rate),
+        tier: getTier(safeFloat(v.match_rate)),
+      }));
+      setVendorRegistry(enriched);
       setLoading(false);
     }
     fetchVendors();
@@ -69,14 +42,16 @@ export default function VendorManagement() {
 
   const filtered = vendorRegistry.filter(v => {
     const s = searchQuery.toLowerCase();
-    const matchesSearch = v.vendor_name.toLowerCase().includes(s) || v.vendor_gstin.toLowerCase().includes(s);
+    const matchesSearch =
+      safeStr(v.vendor_name).toLowerCase().includes(s) ||
+      safeStr(v.vendor_gstin).toLowerCase().includes(s);
     const matchesStatus = filterStatus ? v.tier === filterStatus : true;
     return matchesSearch && matchesStatus;
   });
 
-  const totalVendors   = vendorRegistry.length;
-  const criticalVendors= vendorRegistry.filter(v => v.tier === 'INTERVENTION').length;
-  const totalITCRisk   = vendorRegistry.reduce((acc, curr) => acc + curr.total_itc_at_risk, 0);
+  const totalVendors    = vendorRegistry.length;
+  const criticalVendors = vendorRegistry.filter(v => v.tier === 'INTERVENTION').length;
+  const totalITCRisk    = vendorRegistry.reduce((acc, v) => acc + safeFloat(v.total_itc_at_risk), 0);
 
   if (loading) {
     return (
@@ -185,15 +160,15 @@ export default function VendorManagement() {
             ) : (
               (Array.isArray(filtered) ? filtered : []).map((v) => (
                 <tr key={v.vendor_gstin} className="row-hover" style={{ color: '#1B1811' }}>
-                  <td className="p-3 font-semibold font-sans text-ink truncate max-w-[150px]">{v.vendor_name}</td>
-                  <td className="p-3">{v.vendor_gstin}</td>
-                  <td className="p-3 text-right">{v.total_invoices}</td>
-                  <td className="p-3 text-right text-brass font-semibold">{v.clean_matches}</td>
-                  <td className="p-3 text-right text-vermillion">{v.missing_in_2b}</td>
+                  <td className="p-3 font-semibold font-sans text-ink truncate max-w-[150px]">{safeStr(v.vendor_name)}</td>
+                  <td className="p-3">{safeStr(v.vendor_gstin)}</td>
+                  <td className="p-3 text-right">{Number(v.total_invoices || 0).toLocaleString('en-IN')}</td>
+                  <td className="p-3 text-right text-brass font-semibold">{Number(v.clean_matches || 0).toLocaleString('en-IN')}</td>
+                  <td className="p-3 text-right text-vermillion">{Number(v.missing_in_2b || 0).toLocaleString('en-IN')}</td>
                   <td className="p-3 text-right font-bold text-vermillion">
-                    ₹{v.total_itc_at_risk.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                    ₹{safeFloat(v.total_itc_at_risk).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                   </td>
-                  <td className="p-3 text-right font-bold text-ink">{v.complianceRate.toFixed(1)}%</td>
+                  <td className="p-3 text-right font-bold text-ink">{safeFloat(v.complianceRate).toFixed(1)}%</td>
                   <td className="p-3 text-right font-sans">
                     <span className={`inline-block px-1.5 py-0.5 border text-[10px] font-bold ${
                       v.tier === 'EXCELLENT'
