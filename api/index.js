@@ -544,26 +544,25 @@ app.get(['/api/communication/draft', '/communication/draft'], async (req, res) =
         query: `SELECT * FROM \`decisionforge-501312.gst_notices.reconciliation_risk_ranked\` WHERE invoice_number = @invoice_number AND vendor_gstin = @vendor_gstin LIMIT 1`,
         params: { invoice_number, vendor_gstin }
       });
-      if (rows.length > 0) row = formatBqRow(rows[0]);
+      if (rows.length > 0) {
+        row = formatBqRow(rows[0]);
+      } else {
+        return res.status(404).json({ error: `Invoice ${invoice_number} for vendor ${vendor_gstin} not found — cannot generate draft.` });
+      }
     } catch (err) {
       console.warn('[/api/communication/draft] BQ lookup failed:', err.message);
+      return res.status(500).json({ error: `BigQuery query failed: ${err.message}` });
     }
   }
 
   if (!row) {
-    row = MOCK_RECONCILIATION.find(
+    const found = MOCK_RECONCILIATION.find(
       r => r.invoice_number === invoice_number && r.vendor_gstin === vendor_gstin
-    ) || {
-      invoice_number,
-      vendor_gstin,
-      vendor_name: 'Vendor ' + vendor_gstin,
-      mismatch_type: 'MISSING_IN_2B',
-      itc_at_risk: 50000,
-      pr_total_itc_claimed: 50000,
-      b_itc_available: 0,
-      filing_period: '2026-03',
-      client_gstin: '07FTCJJ3204D7Z5'
-    };
+    );
+    if (!found) {
+      return res.status(404).json({ error: `Invoice ${invoice_number} for vendor ${vendor_gstin} not found — cannot generate draft.` });
+    }
+    row = found;
   }
 
   try {

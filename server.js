@@ -467,7 +467,8 @@ app.post('/api/clients', async (req, res) => {
   const cleanGstin = client_gstin.trim().toUpperCase();
   const pyProcess = spawnSync('python', [
     '-c',
-    `import json, sys; sys.path.append('.'); from pipeline.validators import validate_gstin; valid, err = validate_gstin('${cleanGstin}'); print(json.dumps({'valid': valid, 'error': err}))`
+    `import json, sys; sys.path.append('.'); from pipeline.validators import validate_gstin; valid, err = validate_gstin(sys.argv[1]); print(json.dumps({'valid': valid, 'error': err}))`,
+    cleanGstin
   ], { timeout: 15000, encoding: 'utf8' });
 
   let isValid = false;
