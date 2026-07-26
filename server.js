@@ -440,12 +440,12 @@ app.get('/api/clients', async (req, res) => {
       merged.push({
         client_gstin: reg.client_gstin,
         client_name: reg.client_name || reg.client_gstin,
-        total_invoices: 0,
+        total_invoice_count: 0,
         risk_count: 0,
         total_itc_at_risk: 0,
         missing_in_2b_count: 0,
         amount_mismatch_count: 0,
-        timing_diff_count: 0,
+        timing_difference_count: 0,
         duplicate_claim_count: 0,
         missing_in_register_count: 0,
         clean_match_count: 0
@@ -744,12 +744,12 @@ app.get('/api/benchmark', (req, res) => {
     console.error('[/api/benchmark] CSV read failed:', err.message);
   }
   return res.json([
-    { Scale: 500,   Backend: 'pandas', 'Time (s)': 0.018 },
-    { Scale: 500,   Backend: 'cudf',   'Time (s)': 0.024 },
-    { Scale: 5000,  Backend: 'pandas', 'Time (s)': 0.055 },
-    { Scale: 5000,  Backend: 'cudf',   'Time (s)': 0.020 },
-    { Scale: 50000, Backend: 'pandas', 'Time (s)': 0.853 },
-    { Scale: 50000, Backend: 'cudf',   'Time (s)': 0.123 },
+    { Scale: 500,   Backend: 'pandas', 'Time (s)': 0.018, _isFallback: true },
+    { Scale: 500,   Backend: 'cudf',   'Time (s)': 0.024, _isFallback: true },
+    { Scale: 5000,  Backend: 'pandas', 'Time (s)': 0.055, _isFallback: true },
+    { Scale: 5000,  Backend: 'cudf',   'Time (s)': 0.020, _isFallback: true },
+    { Scale: 50000, Backend: 'pandas', 'Time (s)': 0.853, _isFallback: true },
+    { Scale: 50000, Backend: 'cudf',   'Time (s)': 0.123, _isFallback: true },
   ]);
 });
 

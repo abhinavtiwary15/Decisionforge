@@ -52,7 +52,8 @@ export default function RiskAnalysis({ setCurrentPage, setSelectedInvoice }) {
 
   const pandasRow = (benchmarkData || []).find(item => Number(item.Scale) === 50000 && item.Backend === 'pandas');
   const cudfRow   = (benchmarkData || []).find(item => Number(item.Scale) === 50000 && item.Backend === 'cudf');
-  
+  const benchmarkIsFallback = !!(pandasRow?._isFallback || cudfRow?._isFallback);
+
   const pandasTimeValue = pandasRow ? safeFloat(pandasRow['Time (s)']) : 0.8533785343170166;
   const cudfTimeValue   = cudfRow   ? safeFloat(cudfRow['Time (s)'])   : 0.12259507179260254;
 
@@ -217,9 +218,15 @@ export default function RiskAnalysis({ setCurrentPage, setSelectedInvoice }) {
                 <h2 className="section-header">Engine Acceleration</h2>
                 <p className="body-secondary mt-1">NVIDIA cuDF Ledger Sync Benchmark</p>
               </div>
-              <span className="bg-brass-15 text-brass font-mono font-bold text-[10px] px-2 py-0.5 border border-brass border-opacity-35">
-                GPU ACTIVE
-              </span>
+              {benchmarkIsFallback ? (
+                <span className="bg-ink/[0.06] text-ink-55 font-mono font-bold text-[10px] px-2 py-0.5 border border-ink border-opacity-20">
+                  CACHED REFERENCE
+                </span>
+              ) : (
+                <span className="bg-brass-15 text-brass font-mono font-bold text-[10px] px-2 py-0.5 border border-brass border-opacity-35">
+                  GPU ACTIVE
+                </span>
+              )}
             </div>
             <div className="mt-4 space-y-3">
               <div className="flex justify-between items-baseline border-b border-ink border-opacity-10 pb-2">
@@ -236,7 +243,9 @@ export default function RiskAnalysis({ setCurrentPage, setSelectedInvoice }) {
               </div>
             </div>
             <p className="text-[10px] text-ink-55 mt-3 font-sans italic leading-snug">
-              Syncing large client ledgers takes under a fraction of a second utilizing GPU-accelerated computing pipelines.
+              {benchmarkIsFallback
+                ? 'Reference benchmark — no live GPU run available in this environment. Numbers reflect a prior measured result, not a live measurement.'
+                : 'Syncing large client ledgers takes under a fraction of a second utilizing GPU-accelerated computing pipelines.'}
             </p>
           </div>
         </div>

@@ -153,9 +153,9 @@ export default function VendorManagement() {
             </select>
           </div>
         </div>
-        <button onClick={() => alert(`Drafting follow-ups for ${criticalVendors} defaulted suppliers.`)}
-          className="bg-brass text-paper hover:opacity-95 font-sans font-semibold text-xs px-4 py-2 border border-brass whitespace-nowrap">
-          BATCH NOTICE SUPPLIERS
+        <button disabled
+          className="bg-ink/[0.06] text-ink-45 font-sans font-semibold text-xs px-4 py-2 border border-ink border-opacity-20 cursor-not-allowed whitespace-nowrap" title="Batch notice generation is not yet available">
+          BATCH NOTICE SUPPLIERS &mdash; COMING SOON
         </button>
       </div>
 
@@ -206,9 +206,9 @@ export default function VendorManagement() {
                     </span>
                   </td>
                   <td className="p-3 text-right font-sans">
-                    <button onClick={() => alert(`Initiating ledger sync for vendor ${v.vendor_gstin}`)}
-                      className="border border-ink border-opacity-40 text-ink btn-outline-hover px-2 py-0.5 text-[10px] font-semibold">
-                      Sync
+                    <button disabled
+                      className="border border-ink border-opacity-20 text-ink-40 px-2 py-0.5 text-[10px] font-semibold cursor-not-allowed" title="Ledger sync is not yet available">
+                      Coming Soon
                     </button>
                   </td>
                 </tr>

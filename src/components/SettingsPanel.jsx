@@ -391,7 +391,7 @@ export default function SettingsPanel({ open, onClose }) {
                         )}
                       </div>
                       <span className="font-mono text-ink-45 text-right self-center">
-                        {Number(c.total_invoices || 0).toLocaleString('en-IN')}
+                      {Number(c.total_invoice_count || 0).toLocaleString('en-IN')}
                       </span>
                       <span className="font-mono text-brass text-right self-center">
                         ₹{Number(c.total_itc_at_risk || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}

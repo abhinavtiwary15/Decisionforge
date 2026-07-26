@@ -22,12 +22,5 @@
       "Total ITC"
     ],
     "saved_at": "2026-07-18T15:34:42.261Z"
-  },
-  "27AAAAA1234A1Z1": {
-    "mapping": {
-      "invoice": "Invoice No"
-    },
-    "columns_fingerprint": "fp123",
-    "saved_at": "2026-07-23T07:26:43.660Z"
   }
 }
