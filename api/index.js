@@ -785,85 +785,95 @@ app.get(['/api/vendor-summary', '/vendor-summary'], async (req, res) => {
 });
 
 // 10. POST /api/purchase-register/upload
-const UPLOAD_DIR = path.join(__dirname, '..', 'tmp', 'pr_upload');
-if (!fs.existsSync(UPLOAD_DIR)) {
-  try { fs.mkdirSync(UPLOAD_DIR, { recursive: true }); } catch (e) {}
-}
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, UPLOAD_DIR),
-  filename: (req, file, cb) => cb(null, `${crypto.randomUUID()}${path.extname(file.originalname)}`)
-});
+const storage = multer.memoryStorage();
 const upload = multer({ storage });
 const uploadSessions = new Map();
 
-app.post(['/api/purchase-register/upload', '/purchase-register/upload'], upload.single('file'), (req, res) => {
-  if (!req.file) return res.status(400).json({ error: 'No file uploaded.' });
-  const fileId = path.basename(req.file.filename, path.extname(req.file.filename));
-  const clientGstin = req.query.client_gstin || req.body.client_gstin;
-  if (!clientGstin) {
-    try { fs.unlinkSync(req.file.path); } catch (e) {}
-    return res.status(400).json({ error: 'Missing client_gstin parameter.' });
-  }
-
-  let columns;
-  const pythonPath = process.platform === 'win32' ? 'py' : 'python3';
-  const scriptPath = path.join(__dirname, '..', 'pipeline', 'ingest_purchase_register.py');
-  
-  let pythonWorked = false;
+app.post(['/api/purchase-register/upload', '/purchase-register/upload'], (req, res, next) => {
+  upload.single('file')(req, res, (err) => {
+    if (err) {
+      console.error('[upload] Multer error:', err.message);
+      return res.status(400).json({ error: "File upload failed: " + err.message });
+    }
+    next();
+  });
+}, (req, res) => {
   try {
-    const pyProcess = spawnSync(pythonPath, [scriptPath, '--detect-columns', req.file.path], {
-      timeout: 20000,
-      encoding: 'utf8',
-    });
-    if (pyProcess.status === 0 && pyProcess.stdout) {
-      const parsed = JSON.parse(pyProcess.stdout.toString().trim());
-      if (Array.isArray(parsed)) {
-        columns = parsed;
-        pythonWorked = true;
-      }
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded.' });
+    const fileId = crypto.randomUUID();
+    const clientGstin = req.query.client_gstin || req.body.client_gstin;
+    if (!clientGstin) {
+      return res.status(400).json({ error: 'Missing client_gstin parameter.' });
     }
-  } catch (e) {
-    console.warn('[upload] Python detection attempt failed:', e.message);
-  }
 
-  if (!pythonWorked) {
+    // Save buffer temporarily in os.tmpdir() if path needed
+    const os = require('os');
+    const tmpPath = path.join(os.tmpdir(), `${fileId}${path.extname(req.file.originalname || '.csv')}`);
+    fs.writeFileSync(tmpPath, req.file.buffer);
+
+    let columns;
+    const pythonPath = process.platform === 'win32' ? 'py' : 'python3';
+    const scriptPath = path.join(__dirname, '..', 'pipeline', 'ingest_purchase_register.py');
+    
+    let pythonWorked = false;
     try {
-      const { detectCsvHeaders } = require('../pipeline/parseFile.js');
-      columns = detectCsvHeaders(req.file.path);
-    } catch (err) {
-      try { fs.unlinkSync(req.file.path); } catch (e) {}
-      console.error('[upload] CSV detection error:', err.message);
-      return res.status(400).json({
-        error: "We couldn't read this file — please check it's a valid CSV export with headers."
+      const pyProcess = spawnSync(pythonPath, [scriptPath, '--detect-columns', tmpPath], {
+        timeout: 20000,
+        encoding: 'utf8',
       });
-    }
-  }
-
-  if (!columns || !Array.isArray(columns) || columns.length === 0) {
-    try { fs.unlinkSync(req.file.path); } catch (e) {}
-    return res.status(400).json({ error: "We couldn't read any header columns from this file." });
-  }
-
-  let savedMapping = null;
-  let mappingValid = false;
-  const mappingsPath = path.join(__dirname, '..', 'data', 'client_column_mappings.json');
-  if (fs.existsSync(mappingsPath)) {
-    try {
-      const allMappings = JSON.parse(fs.readFileSync(mappingsPath, 'utf8'));
-      if (allMappings[clientGstin]) {
-        savedMapping = allMappings[clientGstin].mapping;
-        const savedFingerprint = allMappings[clientGstin].columns_fingerprint || [];
-        const currentFingerprint = [...columns].sort();
-        const fingerprintMatch = JSON.stringify(savedFingerprint.sort()) === JSON.stringify(currentFingerprint);
-        mappingValid = !!fingerprintMatch;
+      if (pyProcess.status === 0 && pyProcess.stdout) {
+        const parsed = JSON.parse(pyProcess.stdout.toString().trim());
+        if (Array.isArray(parsed)) {
+          columns = parsed;
+          pythonWorked = true;
+        }
       }
-    } catch (err) {
-      console.warn('Failed to read client column mappings:', err.message);
+    } catch (e) {
+      console.warn('[upload] Python detection attempt failed:', e.message);
     }
-  }
 
-  uploadSessions.set(fileId, { path: req.file.path, created_at: Date.now(), columns });
-  return res.json({ file_id: fileId, columns, savedMapping, mappingValid });
+    if (!pythonWorked) {
+      try {
+        const { detectCsvHeaders } = require('../pipeline/parseFile.js');
+        columns = detectCsvHeaders(tmpPath);
+      } catch (err) {
+        try { fs.unlinkSync(tmpPath); } catch (e) {}
+        console.error('[upload] CSV detection error:', err.message);
+        return res.status(400).json({
+          error: "We couldn't read this file — please check it's a valid CSV export with headers."
+        });
+      }
+    }
+
+    if (!columns || !Array.isArray(columns) || columns.length === 0) {
+      try { fs.unlinkSync(tmpPath); } catch (e) {}
+      return res.status(400).json({ error: "We couldn't read any header columns from this file." });
+    }
+
+    let savedMapping = null;
+    let mappingValid = false;
+    const mappingsPath = path.join(__dirname, '..', 'data', 'client_column_mappings.json');
+    if (fs.existsSync(mappingsPath)) {
+      try {
+        const allMappings = JSON.parse(fs.readFileSync(mappingsPath, 'utf8'));
+        if (allMappings[clientGstin]) {
+          savedMapping = allMappings[clientGstin].mapping;
+          const savedFingerprint = allMappings[clientGstin].columns_fingerprint || [];
+          const currentFingerprint = [...columns].sort();
+          const fingerprintMatch = JSON.stringify(savedFingerprint.sort()) === JSON.stringify(currentFingerprint);
+          mappingValid = !!fingerprintMatch;
+        }
+      } catch (err) {
+        console.warn('Failed to read client column mappings:', err.message);
+      }
+    }
+
+    uploadSessions.set(fileId, { path: tmpPath, created_at: Date.now(), columns });
+    return res.json({ file_id: fileId, columns, savedMapping, mappingValid });
+  } catch (err) {
+    console.error('[upload] Unhandled upload error:', err.stack || err.message);
+    return res.status(500).json({ error: "We couldn't process this upload. Please check your file and try again." });
+  }
 });
 
 // 11. POST /api/purchase-register/save-mapping
