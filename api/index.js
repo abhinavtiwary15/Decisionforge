@@ -805,31 +805,65 @@ app.post(['/api/purchase-register/upload', '/purchase-register/upload'], upload.
     return res.status(400).json({ error: 'Missing client_gstin parameter.' });
   }
 
+  let columns;
   const pythonPath = process.platform === 'win32' ? 'py' : 'python3';
   const scriptPath = path.join(__dirname, '..', 'pipeline', 'ingest_purchase_register.py');
-  const pyProcess = spawnSync(pythonPath, [scriptPath, '--detect-columns', req.file.path], {
-    timeout: 20000,
-    encoding: 'utf8',
-  });
-  if (pyProcess.error?.code === 'ETIMEDOUT') {
-    try { fs.unlinkSync(req.file.path); } catch (e) {}
-    return res.status(500).json({ error: 'Column detection timed out (20s).' });
-  }
-  if (pyProcess.error || pyProcess.status !== 0) {
-    try { fs.unlinkSync(req.file.path); } catch (e) {}
-    return res.status(500).json({ error: 'Failed to parse file headers.' });
+  
+  let pythonWorked = false;
+  try {
+    const pyProcess = spawnSync(pythonPath, [scriptPath, '--detect-columns', req.file.path], {
+      timeout: 20000,
+      encoding: 'utf8',
+    });
+    if (pyProcess.status === 0 && pyProcess.stdout) {
+      const parsed = JSON.parse(pyProcess.stdout.toString().trim());
+      if (Array.isArray(parsed)) {
+        columns = parsed;
+        pythonWorked = true;
+      }
+    }
+  } catch (e) {
+    console.warn('[upload] Python detection attempt failed:', e.message);
   }
 
-  let columns;
-  try {
-    columns = JSON.parse(pyProcess.stdout.toString().trim());
-  } catch (err) {
+  if (!pythonWorked) {
+    try {
+      const { detectCsvHeaders } = require('../pipeline/parseFile.js');
+      columns = detectCsvHeaders(req.file.path);
+    } catch (err) {
+      try { fs.unlinkSync(req.file.path); } catch (e) {}
+      console.error('[upload] CSV detection error:', err.message);
+      return res.status(400).json({
+        error: "We couldn't read this file — please check it's a valid CSV export with headers."
+      });
+    }
+  }
+
+  if (!columns || !Array.isArray(columns) || columns.length === 0) {
     try { fs.unlinkSync(req.file.path); } catch (e) {}
-    return res.status(500).json({ error: 'Invalid response from parser.' });
+    return res.status(400).json({ error: "We couldn't read any header columns from this file." });
+  }
+
+  let savedMapping = null;
+  let mappingValid = false;
+  const mappingsPath = path.join(__dirname, '..', 'data', 'client_column_mappings.json');
+  if (fs.existsSync(mappingsPath)) {
+    try {
+      const allMappings = JSON.parse(fs.readFileSync(mappingsPath, 'utf8'));
+      if (allMappings[clientGstin]) {
+        savedMapping = allMappings[clientGstin].mapping;
+        const savedFingerprint = allMappings[clientGstin].columns_fingerprint || [];
+        const currentFingerprint = [...columns].sort();
+        const fingerprintMatch = JSON.stringify(savedFingerprint.sort()) === JSON.stringify(currentFingerprint);
+        mappingValid = !!fingerprintMatch;
+      }
+    } catch (err) {
+      console.warn('Failed to read client column mappings:', err.message);
+    }
   }
 
   uploadSessions.set(fileId, { path: req.file.path, created_at: Date.now(), columns });
-  return res.json({ file_id: fileId, columns, savedMapping: null, mappingValid: false });
+  return res.json({ file_id: fileId, columns, savedMapping, mappingValid });
 });
 
 // 11. POST /api/purchase-register/save-mapping
@@ -894,31 +928,48 @@ app.post(['/api/purchase-register/ingest', '/purchase-register/ingest'], (req, r
     return res.status(404).json({ error: 'Uploaded file no longer exists.' });
   }
 
+  let result;
   const pythonPath = process.platform === 'win32' ? 'py' : 'python3';
   const scriptPath = path.join(__dirname, '..', 'pipeline', 'ingest_purchase_register.py');
-  const pyProcess = spawnSync(pythonPath, [
-    scriptPath,
-    '--ingest',
-    filePath,
-    '--mapping',
-    JSON.stringify(mapping)
-  ], { timeout: 20000, encoding: 'utf8' });
+  
+  let pythonWorked = false;
+  try {
+    const pyProcess = spawnSync(pythonPath, [
+      scriptPath,
+      '--ingest',
+      filePath,
+      '--mapping',
+      JSON.stringify(mapping)
+    ], { timeout: 20000, encoding: 'utf8' });
+
+    if (pyProcess.status === 0 && pyProcess.stdout) {
+      const parsed = JSON.parse(pyProcess.stdout.toString().trim());
+      if (parsed && !parsed.error) {
+        result = parsed;
+        pythonWorked = true;
+      }
+    }
+  } catch (e) {
+    console.warn('[ingest] Python ingestion attempt failed:', e.message);
+  }
+
+  if (!pythonWorked) {
+    try {
+      const { ingestPurchaseRegisterJs } = require('../pipeline/parseFile.js');
+      result = ingestPurchaseRegisterJs(filePath, mapping);
+    } catch (err) {
+      console.error('[ingest] JS ingestion error:', err.message);
+      try { if (fs.existsSync(filePath)) fs.unlinkSync(filePath); } catch (e) {}
+      uploadSessions.delete(file_id);
+      return res.status(400).json({ error: "We couldn't process this file — please check that the mapped columns exist and contain valid data." });
+    }
+  }
 
   try { if (fs.existsSync(filePath)) fs.unlinkSync(filePath); } catch (e) {}
   uploadSessions.delete(file_id);
 
-  if (pyProcess.error?.code === 'ETIMEDOUT') {
-    return res.status(500).json({ error: 'Ingestion timed out (20s).' });
-  }
-  if (pyProcess.error || pyProcess.status !== 0) {
-    return res.status(500).json({ error: 'Failed to process file.' });
-  }
-
-  let result;
-  try {
-    result = JSON.parse(pyProcess.stdout.toString().trim());
-  } catch (err) {
-    return res.status(500).json({ error: 'Invalid JSON returned from ingestion.' });
+  if (!result || result.error) {
+    return res.status(400).json({ error: result?.error || 'Failed to process file records.' });
   }
 
   clearCache();

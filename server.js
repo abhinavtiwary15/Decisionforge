@@ -982,34 +982,43 @@ app.post('/api/purchase-register/upload', upload.single('file'), (req, res) => {
     return res.status(400).json({ error: 'Missing client_gstin parameter.' });
   }
 
+  let columns;
   const pythonPath = process.platform === 'win32' ? 'py' : 'python3';
   const scriptPath = path.join(__dirname, 'pipeline', 'ingest_purchase_register.py');
   
-  const pyProcess = spawnSync(pythonPath, [scriptPath, '--detect-columns', req.file.path], {
-    timeout: 20000,
-    encoding: 'utf8',
-  });
-  if (pyProcess.error?.code === 'ETIMEDOUT') {
-    try { fs.unlinkSync(req.file.path); } catch (e) {}
-    return res.status(500).json({ error: 'Column detection timed out (20s). The file may be too large or malformed.' });
-  }
-  if (pyProcess.error || pyProcess.status !== 0) {
-    try { fs.unlinkSync(req.file.path); } catch (e) {}
-    const errMsg = pyProcess.stderr ? pyProcess.stderr.toString() : 'Unknown error calling Python script';
-    return res.status(500).json({ error: 'Failed to parse file headers: ' + errMsg });
-  }
-
-  let columns;
+  let pythonWorked = false;
   try {
-    columns = JSON.parse(pyProcess.stdout.toString().trim());
-  } catch (err) {
-    try { fs.unlinkSync(req.file.path); } catch (e) {}
-    return res.status(500).json({ error: 'Python script returned invalid JSON: ' + pyProcess.stdout.toString() });
+    const pyProcess = spawnSync(pythonPath, [scriptPath, '--detect-columns', req.file.path], {
+      timeout: 20000,
+      encoding: 'utf8',
+    });
+    if (pyProcess.status === 0 && pyProcess.stdout) {
+      const parsed = JSON.parse(pyProcess.stdout.toString().trim());
+      if (Array.isArray(parsed)) {
+        columns = parsed;
+        pythonWorked = true;
+      }
+    }
+  } catch (e) {
+    console.warn('[upload] Python detection attempt failed:', e.message);
   }
 
-  if (columns.error) {
+  if (!pythonWorked) {
+    try {
+      const { detectCsvHeaders } = require('./pipeline/parseFile.js');
+      columns = detectCsvHeaders(req.file.path);
+    } catch (err) {
+      try { fs.unlinkSync(req.file.path); } catch (e) {}
+      console.error('[upload] CSV detection error:', err.message);
+      return res.status(400).json({
+        error: "We couldn't read this file — please check it's a valid CSV export with headers."
+      });
+    }
+  }
+
+  if (!columns || !Array.isArray(columns) || columns.length === 0) {
     try { fs.unlinkSync(req.file.path); } catch (e) {}
-    return res.status(400).json({ error: columns.error });
+    return res.status(400).json({ error: "We couldn't read any header columns from this file." });
   }
 
   let savedMapping = null;
@@ -1116,43 +1125,48 @@ app.post('/api/purchase-register/ingest', (req, res) => {
     return res.status(404).json({ error: 'Uploaded file no longer exists. Please re-upload.' });
   }
 
+  let result;
   const pythonPath = process.platform === 'win32' ? 'py' : 'python3';
   const scriptPath = path.join(__dirname, 'pipeline', 'ingest_purchase_register.py');
   
-  const pyProcess = spawnSync(pythonPath, [
-    scriptPath,
-    '--ingest',
-    filePath,
-    '--mapping',
-    JSON.stringify(mapping)
-  ], { timeout: 20000, encoding: 'utf8' });
-
+  let pythonWorked = false;
   try {
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
+    const pyProcess = spawnSync(pythonPath, [
+      scriptPath,
+      '--ingest',
+      filePath,
+      '--mapping',
+      JSON.stringify(mapping)
+    ], { timeout: 20000, encoding: 'utf8' });
+
+    if (pyProcess.status === 0 && pyProcess.stdout) {
+      const parsed = JSON.parse(pyProcess.stdout.toString().trim());
+      if (parsed && !parsed.error) {
+        result = parsed;
+        pythonWorked = true;
+      }
     }
-  } catch (err) {
-    console.warn(`Failed to unlink file ${filePath}:`, err.message);
+  } catch (e) {
+    console.warn('[ingest] Python ingestion attempt failed:', e.message);
   }
+
+  if (!pythonWorked) {
+    try {
+      const { ingestPurchaseRegisterJs } = require('./pipeline/parseFile.js');
+      result = ingestPurchaseRegisterJs(filePath, mapping);
+    } catch (err) {
+      console.error('[ingest] JS ingestion error:', err.message);
+      try { if (fs.existsSync(filePath)) fs.unlinkSync(filePath); } catch (e) {}
+      uploadSessions.delete(file_id);
+      return res.status(400).json({ error: "We couldn't process this file — please check that the mapped columns exist and contain valid data." });
+    }
+  }
+
+  try { if (fs.existsSync(filePath)) fs.unlinkSync(filePath); } catch (e) {}
   uploadSessions.delete(file_id);
 
-  if (pyProcess.error?.code === 'ETIMEDOUT') {
-    return res.status(500).json({ error: 'Ingestion timed out (20s). The file may be too large — try a smaller batch.' });
-  }
-  if (pyProcess.error || pyProcess.status !== 0) {
-    const errMsg = pyProcess.stderr ? pyProcess.stderr.toString() : 'Unknown error calling Python script';
-    return res.status(500).json({ error: 'Failed to process file: ' + errMsg });
-  }
-
-  let result;
-  try {
-    result = JSON.parse(pyProcess.stdout.toString().trim());
-  } catch (err) {
-    return res.status(500).json({ error: 'Python script returned invalid JSON: ' + pyProcess.stdout.toString() });
-  }
-
-  if (result.error) {
-    return res.status(400).json({ error: result.error });
+  if (!result || result.error) {
+    return res.status(400).json({ error: result?.error || 'Failed to process file records.' });
   }
 
   // Clear reconciliation & analytics caches after data ingestion
