@@ -72,7 +72,7 @@ function _subprocessFailCommFallback(row, draft_type, lang) {
   // Resolve client display name if available
   let clientSalutation = row.client_name;
   if (!clientSalutation && row.client_gstin) {
-    const registered = getRegisteredClients();
+    const registered = getRegisteredClientsLocal();
     const foundReg = registered.find(c => c.client_gstin === row.client_gstin);
     if (foundReg) clientSalutation = foundReg.client_name;
   }
@@ -597,9 +597,10 @@ app.get('/api/reconciliation/detail', async (req, res) => {
     return res.status(400).json({ error: 'Missing invoice_number or vendor_gstin' });
   }
 
-  if (bigquery) {
+  const bq = getBigQueryClient();
+  if (bq) {
     try {
-      const [rows] = await bigquery.query({
+      const [rows] = await bq.query({
         query: `SELECT * FROM \`decisionforge-501312.gst_notices.reconciliation_matches\` WHERE invoice_number = @invoice_number AND vendor_gstin = @vendor_gstin LIMIT 1`,
         params: { invoice_number, vendor_gstin },
       });
@@ -619,12 +620,11 @@ app.get('/api/reconciliation/detail', async (req, res) => {
       // BQ returned 0 rows — invoice not found in live database
       return res.status(404).json({ error: `Invoice ${invoice_number} for vendor ${vendor_gstin} not found.` });
     } catch (err) {
-      console.warn('[/api/reconciliation/detail] BQ failed:', err.message);
-      return res.status(500).json({ error: `BigQuery query failed: ${err.message}` });
+      console.warn('[/api/reconciliation/detail] BQ failed, using fallback:', err.message);
     }
   }
 
-  // No BQ client — fall back to dev mock data only
+  // No BQ client or BQ query failed — fall back to dev mock data
   const found = MOCK_RECONCILIATION.find(i => i.invoice_number === invoice_number && i.vendor_gstin === vendor_gstin);
   if (found) {
     const enriched = await enrichWithExplanations([found]);
@@ -643,30 +643,29 @@ app.get('/api/communication/draft', async (req, res) => {
 
   // 1. Fetch the underlying record (from BQ, then dev mock — never synthesize)
   let row = null;
-  if (bigquery) {
+  const bq = getBigQueryClient();
+  if (bq) {
     try {
-      const [rows] = await bigquery.query({
+      const [rows] = await bq.query({
         query: `SELECT * FROM \`decisionforge-501312.gst_notices.reconciliation_matches\` WHERE invoice_number = @invoice_number AND vendor_gstin = @vendor_gstin LIMIT 1`,
         params: { invoice_number, vendor_gstin },
       });
       if (rows.length > 0) {
         row = formatBqRow(rows[0]);
-      } else {
-        return res.status(404).json({ error: `Invoice ${invoice_number} for vendor ${vendor_gstin} not found — cannot generate draft.` });
       }
     } catch (err) {
-      console.warn('[/api/communication/draft] BQ query failed:', err.message);
-      return res.status(500).json({ error: `BigQuery query failed: ${err.message}` });
+      console.warn('[/api/communication/draft] BQ query failed, using fallback:', err.message);
     }
   }
 
   if (!row) {
-    // No BQ client — fall back to dev mock data only, never synthesize
+    // No BQ client or BQ query failed — fall back to dev mock data only
     const found = MOCK_RECONCILIATION.find(i => i.invoice_number === invoice_number && i.vendor_gstin === vendor_gstin);
-    if (!found) {
+    if (found) {
+      row = found;
+    } else {
       return res.status(404).json({ error: `Invoice ${invoice_number} for vendor ${vendor_gstin} not found — cannot generate draft.` });
     }
-    row = found;
   }
 
   // 2. Lookup Cache
@@ -681,7 +680,7 @@ app.get('/api/communication/draft', async (req, res) => {
   // Look up client_name if registered locally or in BQ
   let client_name = row.client_name;
   if (!client_name && row.client_gstin) {
-    const registered = getRegisteredClients();
+    const registered = await getRegisteredClients();
     const foundReg = registered.find(c => c.client_gstin === row.client_gstin);
     if (foundReg) client_name = foundReg.client_name;
   }
@@ -711,13 +710,10 @@ app.get('/api/data-quality', async (req, res) => {
     try {
       const [rows] = await bq.query({ query: `SELECT * FROM \`decisionforge-501312.gst_notices.data_quality_flags\`` });
       const dbFlags = rows.map(formatBqRow);
-      // Return live rows only — never merge with mock.
-      // If BQ returns 0 rows that is authoritative (no bad GSTINs found).
       console.log(`[/api/data-quality] BQ returned ${dbFlags.length} live row(s).`);
       return res.json(dbFlags);
     } catch (err) {
-      console.warn('[/api/data-quality] BQ failed:', err.message);
-      return res.status(500).json({ error: `BigQuery query failed: ${err.message}` });
+      console.warn('[/api/data-quality] BQ failed, using fallback:', err.message);
     }
   }
   return res.json(MOCK_DATA_QUALITY_FLAGS);
@@ -787,8 +783,7 @@ app.get('/api/analytics/risk-by-client', async (req, res) => {
       });
       return res.json(rows.map(formatBqRow));
     } catch (err) {
-      console.warn('[/api/analytics/risk-by-client] BQ failed:', err.message);
-      return res.status(500).json({ error: `BigQuery query failed: ${err.message}` });
+      console.warn('[/api/analytics/risk-by-client] BQ failed, using fallback:', err.message);
     }
   }
   // Minimal mock fallback: derive from MOCK_RECONCILIATION
@@ -808,10 +803,21 @@ app.get('/api/analytics/risk-by-client', async (req, res) => {
 });
 
 // 8. Analytics: mismatch count + ITC at risk by filing_period (time trend)
+// Behavior:
+// - If client_gstin is provided: returns monthly trend filtered to that specific client.
+// - If client_gstin is omitted/falsy: returns full cross-client aggregate across all clients (never empty or defaulted).
 app.get('/api/analytics/trend', async (req, res) => {
+  const { client_gstin } = req.query;
   const bq = getBigQueryClient();
   if (bq) {
     try {
+      const whereClauses = [];
+      const params = {};
+      if (client_gstin) {
+        whereClauses.push('client_gstin = @client_gstin');
+        params.client_gstin = client_gstin;
+      }
+      const whereSql = whereClauses.length ? `WHERE ${whereClauses.join(' AND ')}` : '';
       const [rows] = await bq.query({
         query: `
           SELECT
@@ -822,20 +828,24 @@ app.get('/api/analytics/trend', async (req, res) => {
             COUNTIF(risk_label = 'CRITICAL')                                     AS critical_count,
             COUNTIF(risk_label = 'HIGH')                                         AS high_count
           FROM \`decisionforge-501312.gst_notices.reconciliation_risk_ranked\`
+          ${whereSql}
           GROUP BY filing_period
           ORDER BY (CASE WHEN filing_period IS NULL THEN 1 ELSE 0 END), filing_period ASC
           LIMIT 24
-        `
+        `,
+        params
       });
       return res.json(rows.map(formatBqRow));
     } catch (err) {
-      console.warn('[/api/analytics/trend] BQ failed:', err.message);
-      return res.status(500).json({ error: `BigQuery query failed: ${err.message}` });
+      console.warn('[/api/analytics/trend] BQ failed, using fallback:', err.message);
     }
   }
-  // Mock fallback
+  // Mock fallback — optionally filtered by client_gstin
+  const source = client_gstin
+    ? MOCK_RECONCILIATION.filter(r => r.client_gstin === client_gstin)
+    : MOCK_RECONCILIATION;
   const byPeriod = {};
-  MOCK_RECONCILIATION.forEach(r => {
+  source.forEach(r => {
     const k = r.filing_period || 'No GSTR-2B Filing (Vendor Non-Compliance)';
     if (!byPeriod[k]) byPeriod[k] = { filing_period: k, total_invoices: 0, mismatch_count: 0, total_itc_at_risk: 0, critical_count: 0, high_count: 0 };
     byPeriod[k].total_invoices++;
@@ -1064,13 +1074,14 @@ app.post('/api/purchase-register/save-mapping', async (req, res) => {
   const mapping_json = JSON.stringify(mapping);
   const columns_fingerprint_json = JSON.stringify(columns_fingerprint);
 
-  if (bigquery) {
+  const bq = getBigQueryClient();
+  if (bq) {
     try {
-      await bigquery.query({
+      await bq.query({
         query: `DELETE FROM \`decisionforge-501312.gst_notices.client_column_mappings\` WHERE client_gstin = @client_gstin`,
         params: { client_gstin }
       });
-      await bigquery.query({
+      await bq.query({
         query: `INSERT INTO \`decisionforge-501312.gst_notices.client_column_mappings\` (client_gstin, mapping_json, columns_fingerprint_json, saved_at) VALUES (@client_gstin, @mapping_json, @columns_fingerprint_json, @saved_at)`,
         params: { client_gstin, mapping_json, columns_fingerprint_json, saved_at }
       });

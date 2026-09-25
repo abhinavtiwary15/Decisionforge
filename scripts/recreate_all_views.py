@@ -196,11 +196,35 @@ FROM `decisionforge-501312.gst_notices.reconciliation_matches`
 WHERE mismatch_type = 'INVALID_GSTIN'
 """
 
+VIEW5 = f"""
+CREATE OR REPLACE VIEW `{PROJECT}.{DATASET}.vendor_compliance_summary` AS
+SELECT
+  vendor_gstin,
+  ANY_VALUE(vendor_name)                                          AS vendor_name,
+  COUNT(*)                                                        AS total_invoices,
+  COUNTIF(mismatch_type = 'CLEAN_MATCH')                         AS clean_matches,
+  COUNTIF(mismatch_type = 'MISSING_IN_2B')                       AS missing_in_2b,
+  COUNTIF(mismatch_type = 'AMOUNT_MISMATCH')                     AS amount_mismatches,
+  COUNTIF(mismatch_type = 'TIMING_DIFFERENCE')                   AS timing_differences,
+  COUNTIF(mismatch_type = 'DUPLICATE_CLAIM')                     AS duplicate_claims,
+  ROUND(SUM(itc_at_risk), 2)                                     AS total_itc_at_risk,
+  ROUND(SAFE_DIVIDE(
+    COUNTIF(mismatch_type = 'CLEAN_MATCH'),
+    COUNT(*)
+  ) * 100, 1)                                                     AS match_rate
+FROM `{PROJECT}.{DATASET}.reconciliation_matches`
+WHERE mismatch_type != 'INVALID_GSTIN'
+  AND vendor_gstin IS NOT NULL
+GROUP BY vendor_gstin
+ORDER BY total_itc_at_risk DESC;
+"""
+
 VIEWS = [
-    ("reconciliation_matches",          VIEW1),
-    ("reconciliation_risk_ranked",      VIEW2),
+    ("reconciliation_matches",           VIEW1),
+    ("reconciliation_risk_ranked",       VIEW2),
     ("reconciliation_summary_by_client", VIEW3),
-    ("data_quality_flags",              VIEW4),
+    ("data_quality_flags",               VIEW4),
+    ("vendor_compliance_summary",        VIEW5),
 ]
 
 
@@ -208,10 +232,10 @@ def main():
     client = bigquery.Client(project=PROJECT)
 
     print("=" * 70)
-    print("Re-creating all 4 BigQuery views")
+    print("Re-creating all 5 BigQuery views")
     print("=" * 70)
     for i, (name, sql) in enumerate(VIEWS, 1):
-        print(f"  [{i}/4] {name} ...", end=" ", flush=True)
+        print(f"  [{i}/5] {name} ...", end=" ", flush=True)
         job = client.query(sql)
         job.result()
         print("OK")

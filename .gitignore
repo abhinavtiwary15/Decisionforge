@@ -26,4 +26,6 @@ __pycache__/
 *.pyc
 *.pyo
 
+scratch/
+
 .env*

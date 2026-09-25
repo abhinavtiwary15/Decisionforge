@@ -262,8 +262,23 @@ export default function ReportsAnalytics() {
   const [reportStatus, setReportStatus]   = useState(null); // null | 'generating' | 'success' | 'error'
   const [reportError, setReportError]     = useState('');
 
-  // Static mismatch distribution (from reconciliation_summary; keep as-is)
-  const mismatchDistribution = [
+  // Dynamic mismatch distribution derived from selectedClient or all clients
+  const activeClients = selectedClient
+    ? clients.filter(c => c.client_gstin === selectedClient)
+    : clients;
+
+  const dynamicMismatchDistribution = [
+    { name: 'Clean Matches',   value: activeClients.reduce((s, c) => s + safeInt(c.clean_match_count), 0), color: C.ink },
+    { name: 'Timing Diff',     value: activeClients.reduce((s, c) => s + safeInt(c.timing_difference_count), 0), color: '#6B6348' },
+    { name: 'Missing in 2B',   value: activeClients.reduce((s, c) => s + safeInt(c.missing_in_2b_count), 0), color: C.red },
+    { name: 'Amt Mismatch',    value: activeClients.reduce((s, c) => s + safeInt(c.amount_mismatch_count), 0), color: C.brass },
+    { name: 'Duplicate',       value: activeClients.reduce((s, c) => s + safeInt(c.duplicate_claim_count), 0), color: '#D44A1A' },
+    { name: 'Missing in Reg',  value: activeClients.reduce((s, c) => s + safeInt(c.missing_in_register_count), 0), color: '#4A3F2A' },
+  ];
+  const dynamicTotal = dynamicMismatchDistribution.reduce((s, d) => s + d.value, 0);
+
+  // If dynamicTotal > 0, use real computed distribution; otherwise use baseline
+  const mismatchDistribution = dynamicTotal > 0 ? dynamicMismatchDistribution : [
     { name: 'Clean Matches',   value: 23921, color: C.ink },
     { name: 'Timing Diff',     value: 14990, color: '#6B6348' },
     { name: 'Missing in 2B',   value:  5081, color: C.red },
@@ -308,12 +323,12 @@ export default function ReportsAnalytics() {
   }, [contextData]);
 
   // ── Fetch analytics data ──
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = async (clientGstin = selectedClient) => {
     setAnalyticsLoading(true);
     setAnalyticsError(null);
     const [rbcRes, trendRes] = await Promise.all([
       api.getAnalyticsRiskByClient(),
-      api.getAnalyticsTrend(),
+      api.getAnalyticsTrend(clientGstin),
     ]);
     const err = rbcRes.error || trendRes.error;
     if (err) {
@@ -326,8 +341,8 @@ export default function ReportsAnalytics() {
   };
 
   useEffect(() => {
-    fetchAnalytics();
-  }, []);
+    fetchAnalytics(selectedClient);
+  }, [selectedClient]);
 
   const targetScale = benchmarkData.find(item => item.rawScale === 50000);
   const speedup = (targetScale && targetScale.cudf > 0)

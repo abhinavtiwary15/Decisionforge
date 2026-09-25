@@ -114,7 +114,8 @@ export const api = {
 
   getAnalyticsRiskByClient: () => apiFetch('/api/analytics/risk-by-client'),
 
-  getAnalyticsTrend: () => apiFetch('/api/analytics/trend'),
+  getAnalyticsTrend: (clientGstin) =>
+    apiFetch(`/api/analytics/trend${clientGstin ? `?client_gstin=${encodeURIComponent(clientGstin)}` : ''}`),
 
   getVendorSummary: () => apiFetch('/api/vendor-summary'),
 };

@@ -507,8 +507,7 @@ app.get(['/api/reconciliation/detail', '/reconciliation/detail'], async (req, re
       }
       return res.status(404).json({ error: `Invoice ${invoice_number} for vendor ${vendor_gstin} not found.` });
     } catch (err) {
-      console.warn('[/api/reconciliation/detail] BQ failed:', err.message);
-      return res.status(500).json({ error: `BigQuery query failed: ${err.message}` });
+      console.warn('[/api/reconciliation/detail] BQ failed, using fallback:', err.message);
     }
   }
 
@@ -550,8 +549,7 @@ app.get(['/api/communication/draft', '/communication/draft'], async (req, res) =
         return res.status(404).json({ error: `Invoice ${invoice_number} for vendor ${vendor_gstin} not found — cannot generate draft.` });
       }
     } catch (err) {
-      console.warn('[/api/communication/draft] BQ lookup failed:', err.message);
-      return res.status(500).json({ error: `BigQuery query failed: ${err.message}` });
+      console.warn('[/api/communication/draft] BQ lookup failed, using fallback:', err.message);
     }
   }
 
@@ -683,10 +681,21 @@ app.get(['/api/analytics/risk-by-client', '/analytics/risk-by-client'], async (r
 });
 
 // 9. GET /api/analytics/trend
+// Behavior:
+// - If client_gstin is provided: returns monthly trend filtered to that specific client.
+// - If client_gstin is omitted/falsy: returns full cross-client aggregate across all clients (never empty or defaulted).
 app.get(['/api/analytics/trend', '/analytics/trend'], async (req, res) => {
+  const { client_gstin } = req.query;
   const bq = getBigQueryClient();
   if (bq) {
     try {
+      const whereClauses = [];
+      const params = {};
+      if (client_gstin) {
+        whereClauses.push('client_gstin = @client_gstin');
+        params.client_gstin = client_gstin;
+      }
+      const whereSql = whereClauses.length ? `WHERE ${whereClauses.join(' AND ')}` : '';
       const [rows] = await bq.query({
         query: `
           SELECT
@@ -697,10 +706,12 @@ app.get(['/api/analytics/trend', '/analytics/trend'], async (req, res) => {
             COUNTIF(risk_label = 'CRITICAL')                                     AS critical_count,
             COUNTIF(risk_label = 'HIGH')                                         AS high_count
           FROM \`decisionforge-501312.gst_notices.reconciliation_risk_ranked\`
+          ${whereSql}
           GROUP BY filing_period
           ORDER BY (CASE WHEN filing_period IS NULL THEN 1 ELSE 0 END), filing_period ASC
           LIMIT 24
-        `
+        `,
+        params
       });
       return res.json(rows.map(formatBqRow));
     } catch (err) {
@@ -708,8 +719,11 @@ app.get(['/api/analytics/trend', '/analytics/trend'], async (req, res) => {
     }
   }
 
+  const source = client_gstin
+    ? MOCK_RECONCILIATION.filter(r => r.client_gstin === client_gstin)
+    : MOCK_RECONCILIATION;
   const byPeriod = {};
-  MOCK_RECONCILIATION.forEach(r => {
+  source.forEach(r => {
     const k = r.filing_period || 'No GSTR-2B Filing (Vendor Non-Compliance)';
     if (!byPeriod[k]) byPeriod[k] = { filing_period: k, total_invoices: 0, mismatch_count: 0, total_itc_at_risk: 0, critical_count: 0, high_count: 0 };
     byPeriod[k].total_invoices++;

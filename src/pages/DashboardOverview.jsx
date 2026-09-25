@@ -45,22 +45,70 @@ export default function DashboardOverview({ setCurrentPage, setSelectedInvoice }
     fetchAll();
   }, [contextData]);
 
-  // Aggregate stats
-  const totalITCRisk     = clients.reduce((acc, c) => acc + safeFloat(c.total_itc_at_risk), 0);
-  const totalInvoices    = clients.reduce((acc, c) => acc + safeInt(c.total_invoice_count), 0);
-  const cleanMatches     = clients.reduce((acc, c) => acc + safeInt(c.clean_match_count), 0);
-  const cleanMatchRate   = totalInvoices > 0 ? (cleanMatches / totalInvoices) * 100 : 0;
-  const mismatchCount    = clients.reduce((acc, c) =>
-    acc + safeInt(c.missing_in_2b_count) + safeInt(c.amount_mismatch_count) + safeInt(c.duplicate_claim_count), 0);
+  // Selected client for filtering
+  const [selectedClient, setSelectedClient] = useState('');
+  const [trendData, setTrendData] = useState([]);
+  const [trendLoading, setTrendLoading] = useState(false);
 
-  const trendData = [
-    { month: 'Oct 25', matches: 12000, mismatches: 800 },
-    { month: 'Nov 25', matches: 14500, mismatches: 950 },
-    { month: 'Dec 25', matches: 16200, mismatches: 1100 },
-    { month: 'Jan 26', matches: 19100, mismatches: 1250 },
-    { month: 'Feb 26', matches: 21500, mismatches: 1400 },
-    { month: 'Mar 26', matches: 23921, mismatches: 1053 },
-  ];
+  useEffect(() => {
+    async function loadTrend() {
+      setTrendLoading(true);
+      const { data, error } = await api.getAnalyticsTrend(selectedClient);
+      if (!error && Array.isArray(data) && data.length > 0) {
+        setTrendData(data.map(t => {
+          const total = safeInt(t.total_invoices);
+          const mismatches = safeInt(t.mismatch_count);
+          const matches = Math.max(0, total - mismatches);
+          const p = safeStr(t.filing_period, 'Other');
+          return {
+            month: p.length > 20 ? p.slice(0, 16) + '…' : p,
+            matches,
+            mismatches,
+            total,
+            itcAtRisk: safeFloat(t.total_itc_at_risk)
+          };
+        }));
+      } else {
+        setTrendData([
+          { month: '2026-01', matches: 0, mismatches: 0 },
+          { month: '2026-02', matches: 0, mismatches: 0 },
+          { month: '2026-03', matches: 0, mismatches: 0 }
+        ]);
+      }
+      setTrendLoading(false);
+    }
+
+    async function loadCriticals() {
+      const { data: reconData } = await api.getReconciliation({
+        risk_label: 'CRITICAL',
+        limit: 5,
+        ...(selectedClient ? { client_gstin: selectedClient } : {})
+      });
+      if (reconData?.data) {
+        setRecentMismatches(Array.isArray(reconData.data) ? reconData.data : []);
+      }
+    }
+
+    loadTrend();
+    loadCriticals();
+  }, [selectedClient]);
+
+  // Filtered views based on selectedClient
+  const displayedClients = selectedClient
+    ? clients.filter(c => c.client_gstin === selectedClient)
+    : clients;
+
+  const displayedFlags = selectedClient
+    ? dataQualityFlags.filter(f => f.client_gstin === selectedClient)
+    : dataQualityFlags;
+
+  // Aggregate stats
+  const totalITCRisk     = displayedClients.reduce((acc, c) => acc + safeFloat(c.total_itc_at_risk), 0);
+  const totalInvoices    = displayedClients.reduce((acc, c) => acc + safeInt(c.total_invoice_count), 0);
+  const cleanMatches     = displayedClients.reduce((acc, c) => acc + safeInt(c.clean_match_count), 0);
+  const cleanMatchRate   = totalInvoices > 0 ? (cleanMatches / totalInvoices) * 100 : 0;
+  const mismatchCount    = displayedClients.reduce((acc, c) =>
+    acc + safeInt(c.missing_in_2b_count) + safeInt(c.amount_mismatch_count) + safeInt(c.duplicate_claim_count), 0);
 
   if (loading) {
     return <SkeletonPage title="GST Reconciliation Console" />;
@@ -84,14 +132,30 @@ export default function DashboardOverview({ setCurrentPage, setSelectedInvoice }
       )}
 
       {/* Header */}
-      <div className="flex justify-between items-end border-b border-ink border-opacity-10 pb-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end border-b border-ink border-opacity-10 pb-4 gap-3">
         <div>
           <h1 className="page-title">GST Reconciliation Console</h1>
           <p className="body-secondary mt-1">
             Real-time reconciliation of Purchase Register against GSTR-2B filings.
           </p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-sans text-ink-60 uppercase font-bold">Client:</span>
+            <select
+              value={selectedClient}
+              onChange={(e) => setSelectedClient(e.target.value)}
+              className="bg-paper border border-ink border-opacity-30 text-ink text-xs px-2 py-1.5 font-mono focus:outline-none"
+              aria-label="Filter Dashboard by Client"
+            >
+              <option value="">All Clients ({clients.length})</option>
+              {clients.map(c => (
+                <option key={c.client_gstin} value={c.client_gstin}>
+                  {c.client_name ? `${c.client_name} (${c.client_gstin})` : c.client_gstin}
+                </option>
+              ))}
+            </select>
+          </div>
           <button
             onClick={() => setCurrentPage('mismatch')}
             className="bg-brass text-paper hover:opacity-95 font-sans font-semibold text-xs px-4 py-2 border border-brass"
@@ -110,7 +174,7 @@ export default function DashboardOverview({ setCurrentPage, setSelectedInvoice }
           <p className="font-mono text-xl font-bold text-brass mt-1 tabular-nums">
             ₹{totalITCRisk.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
           </p>
-          <p className="text-[10px] text-ink-55 mt-1">Across {clients.length} active client profiles</p>
+          <p className="text-[10px] text-ink-55 mt-1">Across {displayedClients.length} active client profile{displayedClients.length !== 1 ? 's' : ''}</p>
         </div>
         <div className="bg-paper p-4 border border-ink border-opacity-15">
           <p className="label-caps">Clean Match Rate</p>
@@ -177,7 +241,7 @@ export default function DashboardOverview({ setCurrentPage, setSelectedInvoice }
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-ink divide-opacity-10 font-mono text-[11px] tabular-nums">
-                  {(Array.isArray(dataQualityFlags) ? dataQualityFlags : []).map((flag) => (
+                  {(Array.isArray(displayedFlags) ? displayedFlags : []).map((flag) => (
                     <tr key={safeStr(flag.invoice_id)} className="row-hover" style={{ color: '#1B1811' }}>
                       <td className="p-3 font-semibold">{safeStr(flag.invoice_number)}</td>
                       <td className="p-3">{safeStr(flag.client_gstin) || 'N/A'}</td>
@@ -201,7 +265,9 @@ export default function DashboardOverview({ setCurrentPage, setSelectedInvoice }
           <div className="flex justify-between items-center mb-4">
             <div>
               <h2 className="section-header">Mismatch Trends</h2>
-              <p className="body-secondary mt-1">Timeline of matching vs. discrepant invoices</p>
+              <p className="body-secondary mt-1">
+                {selectedClient ? `Timeline for client ${selectedClient}` : 'Timeline across all clients'}
+              </p>
             </div>
             <div className="flex gap-4 text-xs font-sans text-ink-75">
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 bg-brass"></span>Matches</span>
@@ -209,6 +275,11 @@ export default function DashboardOverview({ setCurrentPage, setSelectedInvoice }
             </div>
           </div>
           <div className="h-64 w-full">
+            {trendLoading ? (
+              <div className="h-full flex items-center justify-center text-xs font-mono text-ink-50 animate-pulse">
+                Loading trend data…
+              </div>
+            ) : (
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
@@ -229,6 +300,7 @@ export default function DashboardOverview({ setCurrentPage, setSelectedInvoice }
                 <Area type="monotone" dataKey="mismatches" stroke="#A63A2E" strokeWidth={1.5} fillOpacity={1} fill="url(#colorMismatches)"/>
               </AreaChart>
             </ResponsiveContainer>
+            )}
           </div>
         </div>
 
@@ -298,10 +370,10 @@ export default function DashboardOverview({ setCurrentPage, setSelectedInvoice }
               </tr>
             </thead>
             <tbody className="divide-y divide-ink divide-opacity-10 font-mono text-[11px] tabular-nums">
-              {(!Array.isArray(clients) || clients.length === 0) ? (
-                <tr><td colSpan="8" className="p-6 text-center text-ink-50 italic font-sans">No client data available.</td></tr>
+              {(!Array.isArray(displayedClients) || displayedClients.length === 0) ? (
+                <tr><td colSpan="8" className="p-6 text-center text-ink-50 italic font-sans">No client data available for selected filter.</td></tr>
               ) : (
-                (Array.isArray(clients) ? clients : [])
+                (Array.isArray(displayedClients) ? displayedClients : [])
                   .filter(c => c && c.client_gstin !== null && c.client_gstin !== undefined)
                   .map((client) => {
                     const total = safeInt(client.total_invoice_count);

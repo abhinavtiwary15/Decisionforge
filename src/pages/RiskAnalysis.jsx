@@ -218,15 +218,9 @@ export default function RiskAnalysis({ setCurrentPage, setSelectedInvoice }) {
                 <h2 className="section-header">Engine Acceleration</h2>
                 <p className="body-secondary mt-1">NVIDIA cuDF Ledger Sync Benchmark</p>
               </div>
-              {benchmarkIsFallback ? (
-                <span className="bg-ink/[0.06] text-ink-55 font-mono font-bold text-[10px] px-2 py-0.5 border border-ink border-opacity-20">
-                  CACHED REFERENCE
-                </span>
-              ) : (
-                <span className="bg-brass-15 text-brass font-mono font-bold text-[10px] px-2 py-0.5 border border-brass border-opacity-35">
-                  GPU ACTIVE
-                </span>
-              )}
+              <span className="bg-ink/[0.06] text-ink-65 font-mono font-bold text-[10px] px-2 py-0.5 border border-ink border-opacity-20 uppercase">
+                Offline Benchmark Study
+              </span>
             </div>
             <div className="mt-4 space-y-3">
               <div className="flex justify-between items-baseline border-b border-ink border-opacity-10 pb-2">
@@ -238,14 +232,12 @@ export default function RiskAnalysis({ setCurrentPage, setSelectedInvoice }) {
                 <span className="font-mono text-xs font-bold text-ink text-ink-60 tabular-nums">{pandasTimeFormatted}s <span className="text-[10px] font-normal">(Pandas CPU)</span></span>
               </div>
               <div className="pt-1 flex items-center justify-between">
-                <span className="text-xs font-sans font-semibold text-ink">Sync Speedup Factor</span>
+                <span className="text-xs font-sans font-semibold text-ink">Benchmark Speedup Factor</span>
                 <span className="font-mono text-base font-bold text-brass tabular-nums">{speedup}x</span>
               </div>
             </div>
             <p className="text-[10px] text-ink-55 mt-3 font-sans italic leading-snug">
-              {benchmarkIsFallback
-                ? 'Reference benchmark — no live GPU run available in this environment. Numbers reflect a prior measured result, not a live measurement.'
-                : 'Syncing large client ledgers takes under a fraction of a second utilizing GPU-accelerated computing pipelines.'}
+              Illustrative laboratory benchmark on 50,000 rows (NVIDIA RAPIDS cuDF vs Pandas CPU). Recorded in Colab under CUDA 12.x; presented as an architectural reference, not a live execution measurement on this machine.
             </p>
           </div>
         </div>

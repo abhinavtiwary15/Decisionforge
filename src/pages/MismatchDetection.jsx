@@ -20,9 +20,12 @@ export default function MismatchDetection({ setCurrentPage, setSelectedInvoice, 
   // In-flight guard: true while the 1.5s accept animation + advanceQueue is running.
   // Prevents double-click from duplicating the review count or skipping two cases.
   const [acceptInFlight, setAcceptInFlight] = useState(false);
+  const [selectedClient, setSelectedClient] = useState('');
+  const clients = Array.isArray(contextData?.clients) ? contextData.clients : [];
 
   useEffect(() => {
-    if (contextData?.prefetchDone && contextData?.mismatchRecon) {
+    // If no client selected and prefetch is available, use prefetch
+    if (!selectedClient && contextData?.prefetchDone && contextData?.mismatchRecon) {
       setQueue(contextData.mismatchRecon.data || []);
       setLoading(false);
       return;
@@ -30,16 +33,21 @@ export default function MismatchDetection({ setCurrentPage, setSelectedInvoice, 
 
     async function fetchQueue() {
       setLoading(true);
-      const { data, error } = await api.getReconciliation({ limit: 500, exclude_clean: true });
+      const { data, error } = await api.getReconciliation({
+        limit: 500,
+        exclude_clean: true,
+        ...(selectedClient ? { client_gstin: selectedClient } : {})
+      });
       if (error) {
         setFetchError(error);
       } else {
         setQueue(data?.data || []);
+        setCurrentIndex(0);
       }
       setLoading(false);
     }
     fetchQueue();
-  }, [contextData]);
+  }, [contextData, selectedClient]);
 
   const advanceQueue = () => {
     if (currentIndex < queue.length - 1) {
@@ -134,8 +142,20 @@ export default function MismatchDetection({ setCurrentPage, setSelectedInvoice, 
             Single-case manual reconciliation queue. Review supplier filings and take inline action.
           </p>
         </div>
-        <div className="font-mono text-xs text-ink-70">
-          Reviewed: <span className="font-bold text-brass">{auditedCount}</span> / Session
+        <div className="flex items-center gap-3">
+          <select
+            value={selectedClient}
+            onChange={(e) => setSelectedClient(e.target.value)}
+            className="font-mono text-xs border border-ink border-opacity-30 bg-paper px-2 py-1 focus:outline-none focus:border-brass text-ink"
+          >
+            <option value="">All Clients</option>
+            {clients.map(c => (
+              <option key={c.client_gstin} value={c.client_gstin}>{c.client_gstin}</option>
+            ))}
+          </select>
+          <div className="font-mono text-xs text-ink-70">
+            Reviewed: <span className="font-bold text-brass">{auditedCount}</span> / Session
+          </div>
         </div>
       </div>
 

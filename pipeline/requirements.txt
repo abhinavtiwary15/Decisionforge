@@ -1,0 +1,14 @@
+# DecisionForge Python Dependencies
+# ==================================
+# Core data processing & cloud analytics
+google-cloud-bigquery>=3.20.0
+pandas>=2.0.0
+openpyxl>=3.1.0
+
+# Testing
+pytest>=8.0.0
+
+# GPU Acceleration (Optional - Linux/WSL2 with NVIDIA CUDA GPU only)
+# cuDF is required ONLY for running pipeline/benchmark_cpu_vs_gpu.py.
+# Install via: pip install cudf-cu12 --extra-index-url https://pypi.nvidia.com
+# cudf
